@@ -1,0 +1,27 @@
+{
+  "name": "img_api",
+  "version": "0.1.0",
+  "description": "Implementation of the photo-API used as example on RESTdesc.org",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "REST",
+    "RESTdesc",
+    "hypermedia API",
+    "Pragmatic Proof",
+    "API"
+  ],
+  "author": "Moritz Stüber <moritz.stueber@aut.uni-saarland.de>",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-fileupload": "^1.2.1",
+    "fs-extra": "^10.0.0",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "prettier-standard": "^16.4.1",
+    "standard": "^16.0.3"
+  }
+}
