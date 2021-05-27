@@ -5,6 +5,7 @@
 const crypto = require('crypto')
 
 const _ = require('lodash')
+const path = require('path')
 const fs = require('fs-extra')
 const bunyan = require('bunyan')
 const express = require('express')
@@ -75,6 +76,30 @@ async function readConfig () {
 async function resizeImage (original, resized, size) {
   await execFile('/usr/bin/convert', [original, '-resize', size, resized])
   log.debug(`Resized file to ${size} px (keeping the aspect ratio)`)
+}
+
+async function readResourceStateFromDisk (basePath) {
+  const dirContents = await fs.readdir(basePath)
+
+  for (const item of dirContents) {
+    const itemPath = path.join(basePath, item)
+    const itemProperties = await fs.stat(itemPath)
+
+    if (!itemProperties.isDirectory()) {
+      const fileName = _.last(_.split(itemPath, '/'))
+      const buffer = await fs.readFile(itemPath)
+      const hash = crypto
+        .createHash('md5')
+        .update(buffer)
+        .digest('hex')
+
+      // Update knowledge about resource state
+      images[hash] = {
+        fileName: fileName,
+        filePath: itemPath
+      }
+    }
+  }
 }
 
 // Describe hypermedia API using RESTdesc
@@ -206,6 +231,9 @@ async function respondWithNotFound (req, res) {
 async function init () {
   const cfg = await readConfig()
   log.debug({ config: cfg }, 'Instance configuration loaded')
+
+  // Learn about images already available
+  await readResourceStateFromDisk(`${cfg.tmpDirectory}/images`)
 
   // Instantiate express-application and set up middleware-stack
   const app = express()
