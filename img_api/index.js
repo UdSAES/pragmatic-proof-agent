@@ -42,6 +42,23 @@ async function readConfig () {
   return config
 }
 
+// Define request handlers
+async function browseAPI (req, res) {
+  await respondWithNotImplemented (req, res)
+}
+
+async function addImage (req, res) {
+  await respondWithNotImplemented (req, res)
+}
+
+async function getImage (req, res) {
+  await respondWithNotImplemented (req, res)
+}
+
+async function getThumbnail (req, res) {
+  await respondWithNotImplemented (req, res)
+}
+
 // Properly respond in case of errors
 async function sendProblemDetail (res, config) {
   // `config` is a dictionary containing the fields from RFC 7807
@@ -101,6 +118,17 @@ async function init () {
   const specificImage = `${collectionOfImages}/:imageId`
   const thumbnail = `${specificImage}/${resourceNames.thumbnail[lang]}`
 
+  // Define routing
+  app.get('/', browseAPI)
+
+  app.post(collectionOfImages, addImage)
+
+  app.get(specificImage, getImage)
+
+  app.get(thumbnail, getThumbnail)
+
+  // Send 404 as reaction to all other requests
+  app.use((req, res, next) => respondWithNotFound(req, res, next))
 
   // Start listening to incoming requests
   app.listen(cfg.listenPort, function () {
