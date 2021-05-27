@@ -27,3 +27,17 @@ class TestImageResizeAPI(object):
         r = requests.get(href)
 
         assert r.status_code == 200
+
+class TestRESTdescDiscovery(object):
+    origin = os.environ["IMG_API_ORIGIN"]
+
+    @pytest.mark.parametrize("origin,path", [
+        (origin, "/images"),
+        (origin, "/images/1"),
+        (origin, "/images/1/thumbnail"),
+    ])
+    def test_get_rest_desc(self, origin, path):
+        href = f"{origin}{path}"
+        r = requests.options(href)
+
+        assert r.status_code == 200

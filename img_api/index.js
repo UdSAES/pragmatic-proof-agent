@@ -79,15 +79,30 @@ async function resizeImage (original, resized, size) {
 
 // Describe hypermedia API using RESTdesc
 async function n3addImage (req, res) {
-  await respondWithNotImplemented(req, res)
+  const filePath = './restdesc/add_image.n3'
+  const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
+
+  res.set('Allow', 'POST,HEAD,OPTIONS')
+  res.set('Content-Type', 'text/n3')
+  res.status(200).send(RESTdesc)
 }
 
 async function n3getImage (req, res) {
-  await respondWithNotImplemented(req, res)
+  const filePath = './restdesc/get_image.n3'
+  const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
+
+  res.set('Allow', 'GET,HEAD,OPTIONS')
+  res.set('Content-Type', 'text/n3')
+  res.status(200).send(RESTdesc)
 }
 
 async function n3getThumbnail (req, res) {
-  await respondWithNotImplemented(req, res)
+  const filePath = './restdesc/get_thumbnail.n3'
+  const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
+
+  res.set('Allow', 'GET,HEAD,OPTIONS')
+  res.set('Content-Type', 'text/n3')
+  res.status(200).send(RESTdesc)
 }
 
 // Define request handlers
