@@ -42,6 +42,19 @@ async function readConfig () {
   return config
 }
 
+// Describe hypermedia API using RESTdesc
+async function n3addImage (req, res) {
+  await respondWithNotImplemented(req, res)
+}
+
+async function n3getImage (req, res) {
+  await respondWithNotImplemented(req, res)
+}
+
+async function n3getThumbnail (req, res) {
+  await respondWithNotImplemented(req, res)
+}
+
 // Define request handlers
 async function browseAPI (req, res) {
   await respondWithNotImplemented (req, res)
@@ -121,10 +134,13 @@ async function init () {
   // Define routing
   app.get('/', browseAPI)
 
+  app.options(collectionOfImages, n3addImage)
   app.post(collectionOfImages, addImage)
 
+  app.options(specificImage, n3getImage)
   app.get(specificImage, getImage)
 
+  app.options(thumbnail, n3getThumbnail)
   app.get(thumbnail, getThumbnail)
 
   // Send 404 as reaction to all other requests
