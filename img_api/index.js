@@ -39,6 +39,31 @@ async function readConfig () {
 
   log.debug({ config: config }, 'Instance configuration loaded')
 
+  // Construct resource paths
+  const lang = config.language
+  const resourceNames = {
+    images: {
+      en: 'images',
+      de: 'bilder',
+      fr: 'photos'
+    },
+    thumbnail: {
+      en: 'thumbnail',
+      de: 'miniaturbild',
+      fr: 'miniature'
+    }
+  }
+
+  const collectionOfImages = `/${resourceNames.images[lang]}`
+  const specificImage = `${collectionOfImages}/:imageId`
+  const thumbnail = `${specificImage}/${resourceNames.thumbnail[lang]}`
+
+  config.paths = {
+    collectionOfImages: collectionOfImages,
+    specificImage: specificImage,
+    thumbnail: thumbnail
+  }
+
   return config
 }
 
@@ -108,36 +133,17 @@ async function init () {
   const app = express()
   app.use(fileUpload())
 
-  // Construct resource paths
-  const lang = cfg.language
-  const resourceNames = {
-    images: {
-      en: 'images',
-      de: 'bilder',
-      fr: 'photos'
-    },
-    thumbnail: {
-      en: 'thumbnail',
-      de: 'miniaturbild',
-      fr: 'miniature'
-    }
-  }
-
-  const collectionOfImages = `/${resourceNames.images[lang]}`
-  const specificImage = `${collectionOfImages}/:imageId`
-  const thumbnail = `${specificImage}/${resourceNames.thumbnail[lang]}`
-
   // Define routing
   app.get('/', browseAPI)
 
-  app.options(collectionOfImages, n3addImage)
-  app.post(collectionOfImages, addImage)
+  app.options(cfg.paths.collectionOfImages, n3addImage)
+  app.post(cfg.paths.collectionOfImages, addImage)
 
-  app.options(specificImage, n3getImage)
-  app.get(specificImage, getImage)
+  app.options(cfg.paths.specificImage, n3getImage)
+  app.get(cfg.paths.specificImage, getImage)
 
-  app.options(thumbnail, n3getThumbnail)
-  app.get(thumbnail, getThumbnail)
+  app.options(cfg.paths.thumbnail, n3getThumbnail)
+  app.get(cfg.paths.thumbnail, getThumbnail)
 
   // Send 404 as reaction to all other requests
   app.use((req, res, next) => respondWithNotFound(req, res, next))
