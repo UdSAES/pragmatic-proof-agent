@@ -38,7 +38,7 @@ async function readConfig () {
   const config = {
     language: processenv('IMG_API_LANG', 'en'),
     tmpDirectory: processenv('IMG_API_TMP', '/tmp'),
-    listenPort: processenv('IMG_API_PORT', 3000),
+    listenPort: processenv('IMG_API_PORT', 3000)
   }
 
   log.debug({ config: config }, 'Instance configuration loaded')
@@ -115,16 +115,22 @@ async function addImage (req, res) {
     await fs.writeFile(filePath, buffer)
   }
 
-  log.debug(`Added image \`${fileName}\` to API-instance as \`${hash}.${fileExtension}\``)
   // Update knowledge about resource state
   images[hash] = {
     fileName: fileName,
     filePath: filePath
   }
+  log.debug(
+    `Added image \`${fileName}\` to API-instance as \`${hash}.${fileExtension}\``
+  )
+  log.trace({ images: images })
 
   // Acknowlegde successfull addition
   const imagePath = _.replace(cfg.paths.specificImage, ':imageId', hash)
-  res.status(201).location(`${origin}${imagePath}`).json()
+  res
+    .status(201)
+    .location(`${origin}${imagePath}`)
+    .json()
 }
 
 async function getImage (req, res) {
