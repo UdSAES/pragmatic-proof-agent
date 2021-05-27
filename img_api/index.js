@@ -42,6 +42,38 @@ async function readConfig () {
   return config
 }
 
+// Properly respond in case of errors
+async function sendProblemDetail (res, config) {
+  // `config` is a dictionary containing the fields from RFC 7807
+  // field `status` is required; `detail`, `type`, `title`, `instance` are optional
+  res.set('Content-Type', 'application/problem+json')
+  const statusCode = config.status
+  res.status(statusCode).json(config)
+}
+
+async function respondWithNotImplemented (req, res) {
+  await sendProblemDetail(res, {
+    title: 'Not Implemented',
+    status: 501,
+    detail:
+      'The request was understood, but the underlying implementation is not available yet.'
+  })
+  log.info(
+    `\`${req.method} ${req.path}\` -> \`501 Not Implemented\``
+  )
+}
+
+async function respondWithNotFound (req, res) {
+  await sendProblemDetail(res, {
+    title: 'Not Found',
+    status: 404,
+    detail: 'The requested resource was not found on this server'
+  })
+  log.info(
+    `\`${req.method} ${req.path}\` -> \`404 Not Found\``
+  )
+}
+
 // Initialize server
 async function init () {
   const cfg = await readConfig()
