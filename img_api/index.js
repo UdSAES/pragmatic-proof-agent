@@ -8,8 +8,10 @@ const _ = require('lodash')
 const fs = require('fs-extra')
 const bunyan = require('bunyan')
 const express = require('express')
+const { promisify } = require('util')
 const { processenv } = require('processenv')
 const fileUpload = require('express-fileupload')
+const execFile = promisify(require('child_process').execFile)
 
 // Instantiate logger
 const log = bunyan.createLogger({
@@ -69,6 +71,12 @@ async function readConfig () {
   }
 
   return config
+}
+
+// Perform actual work
+async function resizeImage (original, resized, size) {
+  await execFile('/usr/bin/convert', [original, '-resize', size, resized])
+  log.debug(`Resized file to ${size} px (keeping the aspect ratio)`)
 }
 
 // Describe hypermedia API using RESTdesc
@@ -141,7 +149,19 @@ async function getImage (req, res) {
 }
 
 async function getThumbnail (req, res) {
-  await respondWithNotImplemented(req, res)
+  const hash = _.nth(_.split(req.path, '/'), -2)
+  const filePath = images[hash].filePath
+  const fileName = images[hash].fileName
+
+  const cfg = await readConfig()
+  const baseDir = `${cfg.tmpDirectory}/thumbs`
+
+  const thumbnail = `${baseDir}/${fileName}`
+
+  await fs.ensureDir(baseDir)
+  await resizeImage(filePath, thumbnail, 200)
+
+  res.sendFile(thumbnail)
 }
 
 // Properly respond in case of errors
