@@ -31,6 +31,8 @@ const log = bunyan.createLogger({
   }
 })
 
+const images = {}
+
 // Read configuration
 async function readConfig () {
   const config = {
@@ -105,7 +107,7 @@ async function addImage (req, res) {
     .digest('hex')
 
   // Store file on disk
-  const filePath = `${baseDir}/${hash}.${fileExtension}`
+  const filePath = `${baseDir}/${fileName}`
   const filePathExists = await fs.pathExists(filePath)
 
   if (!filePathExists) {
@@ -114,6 +116,11 @@ async function addImage (req, res) {
   }
 
   log.debug(`Added image \`${fileName}\` to API-instance as \`${hash}.${fileExtension}\``)
+  // Update knowledge about resource state
+  images[hash] = {
+    fileName: fileName,
+    filePath: filePath
+  }
 
   // Acknowlegde successfull addition
   const imagePath = _.replace(cfg.paths.specificImage, ':imageId', hash)
