@@ -1,6 +1,7 @@
 # Ignore specific directories
 node_modules/
 local/
+tmp/
 
 # Ignore specific files
 .env
