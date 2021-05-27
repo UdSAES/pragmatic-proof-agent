@@ -215,7 +215,6 @@ async function respondWithNotImplemented (req, res) {
     detail:
       'The request was understood, but the underlying implementation is not available yet.'
   })
-  log.info(`\`${req.method} ${req.path}\` -> \`501 Not Implemented\``)
 }
 
 async function respondWithNotFound (req, res) {
@@ -224,7 +223,6 @@ async function respondWithNotFound (req, res) {
     status: 404,
     detail: 'The requested resource was not found on this server'
   })
-  log.info(`\`${req.method} ${req.path}\` -> \`404 Not Found\``)
 }
 
 // Initialize server
@@ -238,6 +236,20 @@ async function init () {
   // Instantiate express-application and set up middleware-stack
   const app = express()
   app.use(fileUpload())
+
+  // Log every request
+  app.use(async function (req, res, next) {
+    log.debug(
+      {
+        request: {
+          method: req.method,
+          originalUrl: req.originalUrl
+        }
+      },
+      `Received ${req.method}-request at ${req.originalUrl}`
+    )
+    next()
+  })
 
   // Define routing
   app.get('/', browseAPI)
