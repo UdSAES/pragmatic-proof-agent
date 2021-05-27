@@ -14,7 +14,8 @@ class TestImageResizeAPI(object):
     @pytest.mark.parametrize("filepath, origin", [("./tests/001.png", origin)])
     def test_add_image(self, filepath, origin):
         href = f"{origin}/images"
-        files = {"image": ("example.png", open(filepath, "rb"))}
+        file_name = filepath.split('/')[-1]
+        files = {"image": (file_name, open(filepath, "rb"))}
         r = requests.post(href, files=files)
 
         print(r.headers)
@@ -24,6 +25,13 @@ class TestImageResizeAPI(object):
     @pytest.mark.parametrize("image_id, origin", [("0c2d99c897ad212c3fd8823e9b0b06ec", origin)])
     def test_get_image(self, image_id, origin):
         href = f"{origin}/images/{image_id}"
+        r = requests.get(href)
+
+        assert r.status_code == 200
+
+    @pytest.mark.parametrize("image_id, origin", [("0c2d99c897ad212c3fd8823e9b0b06ec", origin)])
+    def test_get_thumbnail(self, image_id, origin):
+        href = f"{origin}/images/{image_id}/thumbnail"
         r = requests.get(href)
 
         assert r.status_code == 200
