@@ -32,8 +32,12 @@ const log = bunyan.createLogger({
 // Read configuration
 async function readConfig () {
   const config = {
-    listenPort: processenv('IMG_API_PORT', 3000)
+    language: processenv('IMG_API_LANG', 'en'),
+    tmpDirectory: processenv('IMG_API_TMP', '/tmp'),
+    listenPort: processenv('IMG_API_PORT', 3000),
   }
+
+  log.debug({config: config}, 'Instance configuration loaded')
 
   return config
 }
@@ -46,7 +50,25 @@ async function init () {
   const app = express()
   app.use(fileUpload())
 
-  // TODO Define routing
+  // Construct resource paths
+  const lang = cfg.language
+  const resourceNames = {
+    images: {
+      en: 'images',
+      de: 'bilder',
+      fr: 'photos'
+    },
+    thumbnail: {
+      en: 'thumbnail',
+      de: 'miniaturbild',
+      fr: 'miniature'
+    }
+  }
+
+  const collectionOfImages = `/${resourceNames.images[lang]}`
+  const specificImage = `${collectionOfImages}/:imageId`
+  const thumbnail = `${specificImage}/${resourceNames.thumbnail[lang]}`
+
 
   // Start listening to incoming requests
   app.listen(cfg.listenPort, function () {
