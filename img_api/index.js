@@ -134,7 +134,10 @@ async function addImage (req, res) {
 }
 
 async function getImage (req, res) {
-  await respondWithNotImplemented(req, res)
+  const hash = _.last(_.split(req.path, '/'))
+  const file = images[hash].filePath
+
+  res.sendFile(file)
 }
 
 async function getThumbnail (req, res) {

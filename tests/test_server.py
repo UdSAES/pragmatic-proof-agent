@@ -20,3 +20,10 @@ class TestImageResizeAPI(object):
         print(r.headers)
 
         assert r.status_code == 201
+
+    @pytest.mark.parametrize("image_id, origin", [("0c2d99c897ad212c3fd8823e9b0b06ec", origin)])
+    def test_get_image(self, image_id, origin):
+        href = f"{origin}/images/{image_id}"
+        r = requests.get(href)
+
+        assert r.status_code == 200
