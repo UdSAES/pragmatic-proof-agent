@@ -43,8 +43,6 @@ async function readConfig () {
     listenPort: processenv('IMG_API_PORT', 3000)
   }
 
-  log.debug({ config: config }, 'Instance configuration loaded')
-
   // Construct resource paths
   const lang = config.language
   const resourceNames = {
@@ -107,7 +105,6 @@ async function addImage (req, res) {
 
   // Create new identifier for image
   const fileName = req.files.image.name
-  const fileExtension = _.last(_.split(fileName, '.'))
   const buffer = req.files.image.data
   const hash = crypto
     .createHash('md5')
@@ -128,9 +125,7 @@ async function addImage (req, res) {
     fileName: fileName,
     filePath: filePath
   }
-  log.debug(
-    `Added image \`${fileName}\` to API-instance as \`${hash}.${fileExtension}\``
-  )
+  log.debug(`Added image \`${fileName}\` to API-instance as \`/images/${hash}\``)
   log.trace({ images: images })
 
   // Acknowlegde successfull addition
@@ -159,7 +154,7 @@ async function getThumbnail (req, res) {
   const thumbnail = `${baseDir}/${fileName}`
 
   await fs.ensureDir(baseDir)
-  await resizeImage(filePath, thumbnail, 200)
+  await resizeImage(filePath, thumbnail, 80)
 
   res.sendFile(thumbnail)
 }
@@ -195,6 +190,7 @@ async function respondWithNotFound (req, res) {
 // Initialize server
 async function init () {
   const cfg = await readConfig()
+  log.debug({ config: cfg }, 'Instance configuration loaded')
 
   // Instantiate express-application and set up middleware-stack
   const app = express()
