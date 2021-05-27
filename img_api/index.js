@@ -37,7 +37,7 @@ async function readConfig () {
     listenPort: processenv('IMG_API_PORT', 3000),
   }
 
-  log.debug({config: config}, 'Instance configuration loaded')
+  log.debug({ config: config }, 'Instance configuration loaded')
 
   return config
 }
@@ -57,19 +57,19 @@ async function n3getThumbnail (req, res) {
 
 // Define request handlers
 async function browseAPI (req, res) {
-  await respondWithNotImplemented (req, res)
+  await respondWithNotImplemented(req, res)
 }
 
 async function addImage (req, res) {
-  await respondWithNotImplemented (req, res)
+  await respondWithNotImplemented(req, res)
 }
 
 async function getImage (req, res) {
-  await respondWithNotImplemented (req, res)
+  await respondWithNotImplemented(req, res)
 }
 
 async function getThumbnail (req, res) {
-  await respondWithNotImplemented (req, res)
+  await respondWithNotImplemented(req, res)
 }
 
 // Properly respond in case of errors
@@ -88,9 +88,7 @@ async function respondWithNotImplemented (req, res) {
     detail:
       'The request was understood, but the underlying implementation is not available yet.'
   })
-  log.info(
-    `\`${req.method} ${req.path}\` -> \`501 Not Implemented\``
-  )
+  log.info(`\`${req.method} ${req.path}\` -> \`501 Not Implemented\``)
 }
 
 async function respondWithNotFound (req, res) {
@@ -99,9 +97,7 @@ async function respondWithNotFound (req, res) {
     status: 404,
     detail: 'The requested resource was not found on this server'
   })
-  log.info(
-    `\`${req.method} ${req.path}\` -> \`404 Not Found\``
-  )
+  log.info(`\`${req.method} ${req.path}\` -> \`404 Not Found\``)
 }
 
 // Initialize server
