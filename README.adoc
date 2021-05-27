@@ -1,0 +1,9 @@
+= Pragmatic Proofs
+
+Hypermedia API composition and execution using N3/RESTdesc/EYE; entirely based on...
+
+ Verborgh, Ruben, Dörthe Arndt, et al. (2017-01). “The Pragmatic Proof: Hypermedia API Composition and Execution”. In: Theory and Practice of Logic Programming 17.1, pp. 1–48. DOI: 10.1017/S1471068416000016.
+
+*This repository contains an implementation of the example set forward in the paper above with the aim of fully understanding it and reproducing its core results.*
+
+So far, there is no original work to be seen here. Just reproduction of what has already been done.
