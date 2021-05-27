@@ -11,7 +11,7 @@ import requests
 class TestImageResizeAPI(object):
     origin = os.environ["IMG_API_ORIGIN"]
 
-    @pytest.mark.parametrize("filepath, origin", [("./tests/001.png", origin)])
+    @pytest.mark.parametrize("filepath, origin", [("./tests/example.png", origin)])
     def test_add_image(self, filepath, origin):
         href = f"{origin}/images"
         file_name = filepath.split('/')[-1]
