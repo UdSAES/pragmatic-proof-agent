@@ -2,6 +2,8 @@
 
 'use strict'
 
+const crypto = require('crypto')
+
 const _ = require('lodash')
 const fs = require('fs-extra')
 const bunyan = require('bunyan')
@@ -86,7 +88,36 @@ async function browseAPI (req, res) {
 }
 
 async function addImage (req, res) {
-  await respondWithNotImplemented(req, res)
+  const host = _.get(req, ['headers', 'host'])
+  const protocol = _.get(req, ['protocol'])
+  const origin = `${protocol}://${host}`
+
+  const cfg = await readConfig()
+  const baseDir = `${cfg.tmpDirectory}/images`
+
+  // Create new identifier for image
+  const fileName = req.files.image.name
+  const fileExtension = _.last(_.split(fileName, '.'))
+  const buffer = req.files.image.data
+  const hash = crypto
+    .createHash('md5')
+    .update(buffer)
+    .digest('hex')
+
+  // Store file on disk
+  const filePath = `${baseDir}/${hash}.${fileExtension}`
+  const filePathExists = await fs.pathExists(filePath)
+
+  if (!filePathExists) {
+    await fs.ensureDir(baseDir)
+    await fs.writeFile(filePath, buffer)
+  }
+
+  log.debug(`Added image \`${fileName}\` to API-instance as \`${hash}.${fileExtension}\``)
+
+  // Acknowlegde successfull addition
+  const imagePath = _.replace(cfg.paths.specificImage, ':imageId', hash)
+  res.status(201).location(`${origin}${imagePath}`).json()
 }
 
 async function getImage (req, res) {
