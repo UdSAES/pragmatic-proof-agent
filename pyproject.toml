@@ -22,8 +22,10 @@ exclude = '''
   | buck-out
   | build
   | dist
+  | eye
 )/
 '''
 
 [tool.isort]
 profile = "black"
+skip = "eye"
