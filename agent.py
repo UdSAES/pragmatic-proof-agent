@@ -3,6 +3,10 @@
 
 """Software agent for hypermedia API composition and execution."""
 
+
+import os
+
+import requests
 from invoke import task
 from loguru import logger
 
@@ -14,6 +18,48 @@ logger.level("REQUEST", no=15, color="<cyan><b>")
 @task(help={"origin": "The root URL to the service instance"})
 def discover_restdesc(ctx, origin):
     """Discover RESTdesc descriptions of service instance."""
+
+    logger.warning(f"Discovery of RESTdesc is hardcoded against known URI structure!")
+
+    language = os.getenv("IMG_API_LANG", "en")
+    logger.debug(f"Selected language '{language}'")
+
+    api_paths = {
+        "en": [
+            "/images",
+            "/images/_",
+            "/images/_/thumbnail",
+        ],
+        "de": [
+            "/bilder",
+            "/bilder/_",
+            "/bilder/_/miniaturbild",
+        ],
+        "fr": [
+            "/photos",
+            "/photos/_",
+            "/photos/_/miniature",
+        ],
+    }
+    content_type = "text/n3"
+
+    descriptions = []
+
+    for path in api_paths[language]:
+        href = f"{origin}{path}"
+        headers = {"content-type": content_type}
+
+        logger.log("REQUEST", f"OPTIONS {href}")
+        r = requests.options(href, headers=headers)
+
+        restdesc = r.text
+        if restdesc == "":
+            logger.warning(f"RESTdesc for path '{path}' is empty")
+        else:
+            logger.debug(f"\n{restdesc}")
+            descriptions.append(restdesc)
+
+    return descriptions
 
 
 def eye_generate_proof(inputs):
