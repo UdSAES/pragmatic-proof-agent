@@ -79,6 +79,7 @@ async function resizeImage (original, resized, size) {
 }
 
 async function readResourceStateFromDisk (basePath) {
+  await fs.ensureDir(basePath)
   const dirContents = await fs.readdir(basePath)
 
   for (const item of dirContents) {
