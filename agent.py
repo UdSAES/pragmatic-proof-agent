@@ -7,6 +7,10 @@ from invoke import task
 from loguru import logger
 
 
+# Add separate log level for HTTP-requests
+logger.level("REQUEST", no=15, color="<cyan><b>")
+
+
 @task(help={"origin": "The root URL to the service instance"})
 def discover_restdesc(ctx, origin):
     """Discover RESTdesc descriptions of service instance."""
