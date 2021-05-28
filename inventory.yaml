@@ -1,0 +1,12 @@
+# Inventory for ansible playbook
+
+all:
+  children:
+    onpremise:
+      hosts:
+        localhost:
+          ansible_host: 127.0.0.1
+          ansible_user: ***
+          ansible_connection: local
+          ansible_python_interpreter: "/usr/bin/python3"
+          ansible_become_pass: ***

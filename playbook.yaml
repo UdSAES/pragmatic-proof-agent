@@ -1,0 +1,39 @@
+# Playbook to build images and coordinate containers on localhost using Docker
+
+---
+- hosts: localhost
+  vars:
+    basedir: /home/moritz/work/projekte/phd_thesis/research/pragmatic_proofs
+    rebuild_existing_images: true
+
+    # EYE reasoner
+    eye:
+      image:
+        name: eye:latest
+      repo:
+        path: "{{ basedir }}/eye"
+  tasks:
+    # Ensure Docker module dependencies are installed
+    - name: Ensure Docker module dependencies are installed
+      ansible.builtin.pip:
+        name: "{{ item.name }}"
+        state: "{{ item.state }}"
+      loop:
+        - { name: docker, state: present }
+        - { name: docker-py, state: absent }
+      become: true
+      tags:
+        - ansible-deps
+
+    # Build image for EYE reasoner
+    - name: Build image for EYE reasoner
+      community.docker.docker_image:
+        source: "build"
+        force_source: "{{ rebuild_existing_images }}"
+        build:
+          path: "{{ eye.repo.path }}"
+        name: "{{ eye.image.name }}"
+      tags:
+        - build
+        - eye
+        - build-eye
