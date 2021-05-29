@@ -61,7 +61,7 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
             "/photos/_",
             "/photos/_/miniature",
         ],
-    }
+    }  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
     content_type = "text/n3"
 
     filenames = []
@@ -176,7 +176,7 @@ def solve_task(ctx, origin, directory, clean_tmp=False):
         "@prefix dbpedia: <http://dbpedia.org/resource/>.\n"
         "\n"
         "<proof.png> a dbpedia:Image.\n"
-    )
+    )  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
     H = "agent_knowledge.n3"
 
     # Define the _goal state g_, i.e. the agent's objective
@@ -186,7 +186,7 @@ def solve_task(ctx, origin, directory, clean_tmp=False):
         "{ <proof.png> dbpedia-owl:thumbnail ?thumbnail. }\n"
         "=>\n"
         "{ <proof.png> dbpedia-owl:thumbnail ?thumbnail. }.\n"
-    )
+    )  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
     g = "agent_goal.n3"
 
     # Store initial state and the agent's goal as .n3 files on disk
