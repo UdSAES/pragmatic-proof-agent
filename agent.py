@@ -18,6 +18,8 @@ logger.level("REQUEST", no=15, color="<cyan><b>")
 def delete_all_files(ctx, directory):
     """Delete all files in `directory`."""
 
+    logger.info("Removing all files in $AGENT_TMP...")
+
     for file in os.scandir(directory):
         logger.debug(f"Removing file {file.path}...")
         os.remove(file.path)
@@ -33,6 +35,8 @@ def delete_all_files(ctx, directory):
 )
 def download_restdesc(ctx, origin, directory, clean_tmp=False):
     """Download RESTdesc descriptions of service instance."""
+
+    logger.info(f"Downloading RESTdesc descriptions from {origin}...")
 
     if clean_tmp == True:
         delete_all_files(ctx, directory)
@@ -138,6 +142,8 @@ def eye_generate_proof(ctx, input_files, agent_goal):
 )
 def solve_api_composition_problem(ctx, H, g, R, B=None):
     """Solve API composition problem."""
+
+    logger.info("Attempting to solve API compsition problem...")
 
     logger.debug(f"{H=}")
     logger.debug(f"{g=}")
