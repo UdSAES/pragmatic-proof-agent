@@ -10,7 +10,6 @@ import requests
 from invoke import task
 from loguru import logger
 
-
 # Add separate log level for HTTP-requests
 logger.level("REQUEST", no=15, color="<cyan><b>")
 
@@ -143,7 +142,7 @@ def eye_generate_proof(ctx, input_files, agent_goal):
 def solve_api_composition_problem(ctx, H, g, R, B=None):
     """Solve API composition problem."""
 
-    logger.info("Attempting to solve API compsition problem...")
+    logger.info("Attempting to solve API composition problem...")
 
     logger.debug(f"{H=}")
     logger.debug(f"{g=}")
