@@ -157,32 +157,57 @@ def eye_generate_proof(ctx, input_files, agent_goal, iteration=0):
 
 @task(
     iterable=["R"],
-    optional=["B"],
+    optional=["B", "pre_proof", "n_pre"],
     help={
         "H": ".n3-file containing the initial state",
         "g": ".n3-file specifying the agent's goal",
         "R": "The RESTdesc descriptions as .n3-files",
         "B": ".n3-file containing background knowledge",
+        "pre_proof": "The .n3-file containing the pre-proof",
+        "n_pre": "The number of API operations in `pre_proof`",
+        "iteration": "The iteration depth",
     },
 )
-def solve_api_composition_problem(ctx, H, g, R, B=None):
-    """Solve API composition problem."""
+def solve_api_composition_problem(
+    ctx, H, g, R, B=None, pre_proof=None, n_pre=None, iteration=0
+):
+    """Recursively solve API composition problem."""
 
-    logger.info("Attempting to solve API composition problem...")
+    logger.info(
+        f"Attempting to solve API composition problem, iteration {iteration}..."
+    )
 
     logger.debug(f"{H=}")
     logger.debug(f"{g=}")
     logger.debug(f"{R=}")
     logger.debug(f"{B=}")
 
-    input_files = []
-    input_files += R
-    input_files.append(H)
-    if B is not None:
-        input_files.append(B)
+    if pre_proof == None:
+        input_files = []
+        input_files += R
+        input_files.append(H)
+        if B is not None:
+            input_files.append(B)
 
-    eye_generate_proof(ctx, input_files, g)
+        # TODO (1) Generate the initial pre-proof
 
+        # TODO (1b) How many times are rules of R applied (i.e. how many API operations)?
+        # n_pre == ...
+
+    # TODO (2) What does `n_pre` imply?
+
+    # TODO (3) Which HTTP requests are sufficiently specified? -> select one
+
+    # TODO (4) Execute HTTP request
+
+    # TODO (4) Parse response, add to ground formulas (initial state)
+
+    # TODO (5) Generate post-proof
+
+    # TODO (6) What is the value of `n_post`?
+    # n_post = ...
+
+    # TODO (7) What do the values of `n_pre` and `n_post` imply?
 
 @task(
     help={
