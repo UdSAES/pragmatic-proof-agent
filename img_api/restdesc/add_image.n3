@@ -9,7 +9,7 @@
 =>
 {
   _:request http:methodName "POST";
-            http:requestURI "/images";
+            http:requestURI "{{ path }}";
             http:body ?image ;
             http:resp [ http:body ?image ].
   ?image ex:comments _:comments ;

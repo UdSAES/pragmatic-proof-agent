@@ -13,6 +13,7 @@ const { promisify } = require('util')
 const { processenv } = require('processenv')
 const fileUpload = require('express-fileupload')
 const execFile = promisify(require('child_process').execFile)
+const nunjucks = require('nunjucks')
 
 // Instantiate logger
 const log = bunyan.createLogger({
@@ -105,14 +106,14 @@ async function readResourceStateFromDisk (basePath) {
 
 // Describe hypermedia API using RESTdesc
 async function n3addImage (req, res) {
-  const filePath = './restdesc/add_image.n3'
-  const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
+  const cfg = await readConfig()
+  const fileName = 'add_image.n3'
 
   res.format({
     'text/n3': async function () {
       res.set('Allow', 'POST,HEAD,OPTIONS')
       res.set('Content-Type', 'text/n3')
-      res.status(200).send(RESTdesc)
+      res.status(200).render(fileName, { path: cfg.paths.collectionOfImages })
     },
     default: async function () {
       await respondWithNotAcceptable(req, res)
@@ -121,19 +122,17 @@ async function n3addImage (req, res) {
 }
 
 async function n3getImage (req, res) {
-
   await respondWithNotImplemented(req, res)
 }
 
 async function n3getThumbnail (req, res) {
-  const filePath = './restdesc/get_thumbnail.n3'
-  const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
+  const fileName = 'get_thumbnail.n3'
 
   res.format({
     'text/n3': async function () {
-      res.set('Allow', 'POST,HEAD,OPTIONS')
+      res.set('Allow', 'GET,HEAD,OPTIONS')
       res.set('Content-Type', 'text/n3')
-      res.status(200).send(RESTdesc)
+      res.status(200).render(fileName)
     },
     default: async function () {
       await respondWithNotAcceptable(req, res)
@@ -290,6 +289,7 @@ async function init () {
   // Instantiate express-application and set up middleware-stack
   const app = express()
   app.use(fileUpload())
+  nunjucks.configure('restdesc', { autoescape: true, express: app })
 
   // Log every request
   app.use(async function (req, res, next) {
