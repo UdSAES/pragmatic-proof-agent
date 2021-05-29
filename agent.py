@@ -134,7 +134,8 @@ def eye_generate_proof(ctx, input_files, agent_goal, iteration=0):
     logger.debug(cmd)
 
     # Generate proof
-    result = ctx.run(cmd, hide=True, timeout=os.getenv("EYE_TIMEOUT", None))
+    timeout = int(os.getenv("EYE_TIMEOUT")) if os.getenv("EYE_TIMEOUT") else None
+    result = ctx.run(cmd, hide=True, timeout=timeout)
     content = result.stdout.replace("PREFIX", "@prefix")  # to avoid syntax errors
 
     logger.debug(f"Reasoning logs:\n{result.stderr}")
