@@ -126,8 +126,31 @@ def eye_generate_proof(ctx, input_files, agent_goal):
     logger.debug(f"Proof deduced by EYE:\n{result.stdout}")
 
 
-def solve_api_composition_problem(H, g, R, B):
+@task(
+    iterable=["R"],
+    optional=["B"],
+    help={
+        "H": ".n3-file containing the initial state",
+        "g": ".n3-file specifying the agent's goal",
+        "R": "The RESTdesc descriptions as .n3-files",
+        "B": ".n3-file containing background knowledge",
+    },
+)
+def solve_api_composition_problem(ctx, H, g, R, B=None):
     """Solve API composition problem."""
+
+    logger.debug(f"{H=}")
+    logger.debug(f"{g=}")
+    logger.debug(f"{R=}")
+    logger.debug(f"{B=}")
+
+    input_files = []
+    input_files += R
+    input_files.append(H)
+    if B is not None:
+        input_files.append(B)
+
+    eye_generate_proof(ctx, input_files, g)
 
 
 @task(
