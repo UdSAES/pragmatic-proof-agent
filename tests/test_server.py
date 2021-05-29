@@ -35,12 +35,12 @@ class TestImageResizeAPI(object):
                 None,
                 200,
             ),
-            ("GET", origin, "/images/_", "application/problem+json", None, 404),
+            ("GET", origin, "/images/_", "image/png", None, 404),
             (
                 "GET",
                 origin,
                 "/images/_/thumbnail",
-                "application/problem+json",
+                "image/png",
                 None,
                 404,
             ),
@@ -49,6 +49,11 @@ class TestImageResizeAPI(object):
     def test_send_request(self, method, origin, path, accept, body, status_code):
         href = f"{origin}{path}"
         headers = {"accept": accept}
+
+        if status_code >= 400:
+            expected_content_type = "application/problem+json"
+        else:
+            expected_content_type = accept
 
         if body is not None:
             file_name = body.split("/")[-1]
@@ -67,4 +72,4 @@ class TestImageResizeAPI(object):
             r = requests.options(href, headers=headers)
 
         assert r.status_code == status_code
-        assert r.headers["content-type"].split(";")[0] == accept
+        assert r.headers["content-type"].split(";")[0] == expected_content_type
