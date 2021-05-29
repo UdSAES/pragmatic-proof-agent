@@ -13,6 +13,12 @@ from loguru import logger
 # Add separate log level for HTTP-requests
 logger.level("REQUEST", no=15, color="<cyan><b>")
 
+
+# Global constants/magic variables
+SUCCESS = 0  # implies successful completion of an algorithm
+FAILURE = 1  # implies that an algorithm failed to find a solution (_not_ an error!)
+
+
 # Utitily functions
 def delete_all_files(ctx, directory):
     """Delete all files in `directory`."""
