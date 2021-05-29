@@ -179,15 +179,29 @@ async function addImage (req, res) {
 
 async function getImage (req, res) {
   const hash = _.last(_.split(req.path, '/'))
-  const file = images[hash].filePath
+  let file
+  try {
+    file = images[hash].filePath
+  } catch (error) {
+    await respondWithNotFound(req, res)
+    return
+  }
 
   res.sendFile(file)
 }
 
 async function getThumbnail (req, res) {
   const hash = _.nth(_.split(req.path, '/'), -2)
-  const filePath = images[hash].filePath
-  const fileName = images[hash].fileName
+
+  let filePath
+  let fileName
+  try {
+    filePath = images[hash].filePath
+    fileName = images[hash].fileName
+  } catch (error) {
+    await respondWithNotFound(req, res)
+    return
+  }
 
   const cfg = await readConfig()
   const baseDir = `${cfg.tmpDirectory}/thumbs`

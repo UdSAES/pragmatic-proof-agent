@@ -35,6 +35,15 @@ class TestImageResizeAPI(object):
                 None,
                 200,
             ),
+            ("GET", origin, "/images/_", "application/problem+json", None, 404),
+            (
+                "GET",
+                origin,
+                "/images/_/thumbnail",
+                "application/problem+json",
+                None,
+                404,
+            ),
         ],
     )
     def test_send_request(self, method, origin, path, accept, body, status_code):
