@@ -74,8 +74,8 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
         r = requests.options(href, headers=headers)
 
         restdesc = r.text
-        if restdesc == "":
-            logger.warning(f"RESTdesc for path '{path}' is empty")
+        if restdesc == "" or r.status_code == 501:
+            logger.warning(f"RESTdesc for path '{path}' is empty/does not exist")
         else:
             filename = "_".join(path.replace("_", "x").split("/")[1:]) + ".n3"
             logger.debug(f"{filename}\n{restdesc}")
