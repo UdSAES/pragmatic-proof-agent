@@ -108,9 +108,16 @@ async function n3addImage (req, res) {
   const filePath = './restdesc/add_image.n3'
   const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
 
-  res.set('Allow', 'POST,HEAD,OPTIONS')
-  res.set('Content-Type', 'text/n3')
-  res.status(200).send(RESTdesc)
+  res.format({
+    'text/n3': async function () {
+      res.set('Allow', 'POST,HEAD,OPTIONS')
+      res.set('Content-Type', 'text/n3')
+      res.status(200).send(RESTdesc)
+    },
+    default: async function () {
+      await respondWithNotAcceptable(req, res)
+    }
+  })
 }
 
 async function n3getImage (req, res) {
@@ -126,9 +133,16 @@ async function n3getThumbnail (req, res) {
   const filePath = './restdesc/get_thumbnail.n3'
   const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
 
-  res.set('Allow', 'GET,HEAD,OPTIONS')
-  res.set('Content-Type', 'text/n3')
-  res.status(200).send(RESTdesc)
+  res.format({
+    'text/n3': async function () {
+      res.set('Allow', 'POST,HEAD,OPTIONS')
+      res.set('Content-Type', 'text/n3')
+      res.status(200).send(RESTdesc)
+    },
+    default: async function () {
+      await respondWithNotAcceptable(req, res)
+    }
+  })
 }
 
 // Define request handlers
@@ -171,10 +185,17 @@ async function addImage (req, res) {
 
   // Acknowlegde successfull addition
   const imagePath = _.replace(cfg.paths.specificImage, ':imageId', hash)
-  res
-    .status(201)
-    .location(`${origin}${imagePath}`)
-    .json()
+  res.format({
+    'image/png': async function () {
+      res
+        .status(201)
+        .location(`${origin}${imagePath}`)
+        .send()
+    },
+    default: async function () {
+      await respondWithNotAcceptable(req, res)
+    }
+  })
 }
 
 async function getImage (req, res) {
@@ -187,7 +208,14 @@ async function getImage (req, res) {
     return
   }
 
-  res.sendFile(file)
+  res.format({
+    'image/png': async function () {
+      res.sendFile(file)
+    },
+    default: async function () {
+      await respondWithNotAcceptable(req, res)
+    }
+  })
 }
 
 async function getThumbnail (req, res) {
@@ -211,7 +239,14 @@ async function getThumbnail (req, res) {
   await fs.ensureDir(baseDir)
   await resizeImage(filePath, thumbnail, 80)
 
-  res.sendFile(thumbnail)
+  res.format({
+    'image/png': async function () {
+      res.sendFile(thumbnail)
+    },
+    default: async function () {
+      await respondWithNotAcceptable(req, res)
+    }
+  })
 }
 
 // Properly respond in case of errors
@@ -237,6 +272,14 @@ async function respondWithNotFound (req, res) {
     title: 'Not Found',
     status: 404,
     detail: 'The requested resource was not found on this server'
+  })
+}
+
+async function respondWithNotAcceptable (req, res) {
+  await sendProblemDetail(res, {
+    title: 'Not acceptable',
+    status: 406,
+    detail: 'The requested (hyper-) media type is not supported for this resource'
   })
 }
 
