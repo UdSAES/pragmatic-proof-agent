@@ -130,5 +130,48 @@ def solve_api_composition_problem(H, g, R, B):
     """Solve API composition problem."""
 
 
-def solve_task():
+@task(
+    help={
+        "origin": "The root URL to the service instance",
+        "directory": "The directory in which to store the .n3-files",
+        "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
+    }
+)
+def solve_task(ctx, origin, directory, clean_tmp=False):
     """Collect definition of API composition problem."""
+
+    if clean_tmp == True:
+        delete_all_files(ctx, directory)
+
+    # Specify _initial state H_
+    initial_state = (
+        "@prefix dbpedia: <http://dbpedia.org/resource/>.\n"
+        "\n"
+        "<proof.png> a dbpedia:Image.\n"
+    )
+    H = "agent_knowledge.n3"
+
+    # Define the _goal state g_, i.e. the agent's objective
+    goal_state = (
+        "@prefix dbpedia-owl: <http://dbpedia.org/ontology/>.\n"
+        "\n"
+        "{ <proof.png> dbpedia-owl:thumbnail ?thumbnail. }\n"
+        "=>\n"
+        "{ <proof.png> dbpedia-owl:thumbnail ?thumbnail. }.\n"
+    )
+    g = "agent_goal.n3"
+
+    # Store initial state and the agent's goal as .n3 files on disk
+    for content, filename in [(initial_state, H), (goal_state, g)]:
+        path = os.path.join(directory, filename)
+        with open(path, "w") as fp:
+            fp.write(content)
+
+    # Discover _description formulas R_ (RESTdesc descriptions)
+    R = download_restdesc(ctx, origin, directory, False)
+
+    # Specify additional _background knowledge B_ [if applicable]
+    B = None
+
+    # Solve API composition problem
+    solve_api_composition_problem(ctx, H, g, R, B)
