@@ -14,4 +14,4 @@
             http:resp [ http:body ?image ].
   ?image ex:comments _:comments ;
          ex:smallThumbnail _:thumb .
-}
+}.
