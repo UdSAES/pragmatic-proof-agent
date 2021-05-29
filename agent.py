@@ -189,12 +189,17 @@ def solve_api_composition_problem(
         if B is not None:
             input_files.append(B)
 
-        # TODO (1) Generate the initial pre-proof
+        # (1) Generate the (initial) pre-proof
+        status, pre_proof = eye_generate_proof(ctx, input_files, g, iteration)
+        if status == FAILURE:
+            return FAILURE
 
         # TODO (1b) How many times are rules of R applied (i.e. how many API operations)?
         # n_pre == ...
 
-    # TODO (2) What does `n_pre` imply?
+    # (2) What does `n_pre` imply?
+    if n_pre == 0:
+        return SUCCESS
 
     # TODO (3) Which HTTP requests are sufficiently specified? -> select one
 
@@ -207,7 +212,18 @@ def solve_api_composition_problem(
     # TODO (6) What is the value of `n_post`?
     # n_post = ...
 
-    # TODO (7) What do the values of `n_pre` and `n_post` imply?
+    # (7) What do the values of `n_pre` and `n_post` imply?
+    iteration += 1
+    if n_post >= n_pre:
+        status = solve_api_composition_problem(ctx, H, g, R, B, None, None, iteration)
+        return status
+    else:
+        n_pre = n_post
+        status = solve_api_composition_problem(
+            ctx, H, g, R, B, pre_proof, n_pre, iteration
+        )
+        return status
+
 
 @task(
     help={
