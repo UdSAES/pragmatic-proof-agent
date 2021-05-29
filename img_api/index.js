@@ -121,12 +121,8 @@ async function n3addImage (req, res) {
 }
 
 async function n3getImage (req, res) {
-  const filePath = './restdesc/get_image.n3'
-  const RESTdesc = await fs.readFile(filePath, { encoding: 'utf-8' })
 
-  res.set('Allow', 'GET,HEAD,OPTIONS')
-  res.set('Content-Type', 'text/n3')
-  res.status(200).send(RESTdesc)
+  await respondWithNotImplemented(req, res)
 }
 
 async function n3getThumbnail (req, res) {

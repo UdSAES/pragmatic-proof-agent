@@ -17,6 +17,7 @@ class TestImageResizeAPI(object):
         "method, origin, path, accept, body, status_code",
         [
             ("OPTIONS", origin, "/images", "text/n3", None, 200),
+            ("OPTIONS", origin, "/images/0", "text/n3", None, 200),
             ("OPTIONS", origin, "/images/0/thumbnail", "text/n3", None, 200),
             ("POST", origin, "/images", "image/png", "./tests/example.png", 201),
             ("POST", origin, "/images", "text/n3", "./tests/example.png", 406),
