@@ -14,10 +14,28 @@ from loguru import logger
 # Add separate log level for HTTP-requests
 logger.level("REQUEST", no=15, color="<cyan><b>")
 
+# Utitily functions
+def delete_all_files(ctx, directory):
+    """Delete all files in `directory`."""
 
-@task(help={"origin": "The root URL to the service instance"})
-def discover_restdesc(ctx, origin):
-    """Discover RESTdesc descriptions of service instance."""
+    for file in os.scandir(directory):
+        logger.debug(f"Removing file {file.path}...")
+        os.remove(file.path)
+
+
+# Core functionality
+@task(
+    help={
+        "origin": "The root URL to the service instance",
+        "directory": "The directory in which to store the .n3-files",
+        "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
+    }
+)
+def download_restdesc(ctx, origin, directory, clean_tmp=False):
+    """Download RESTdesc descriptions of service instance."""
+
+    if clean_tmp == True:
+        delete_all_files(ctx, directory)
 
     logger.warning(f"Discovery of RESTdesc is hardcoded against known URI structure!")
 
@@ -43,11 +61,11 @@ def discover_restdesc(ctx, origin):
     }
     content_type = "text/n3"
 
-    descriptions = []
+    filenames = []
 
     for path in api_paths[language]:
         href = f"{origin}{path}"
-        headers = {"content-type": content_type}
+        headers = {"accept": content_type}
 
         logger.log("REQUEST", f"OPTIONS {href}")
         r = requests.options(href, headers=headers)
@@ -56,10 +74,17 @@ def discover_restdesc(ctx, origin):
         if restdesc == "":
             logger.warning(f"RESTdesc for path '{path}' is empty")
         else:
-            logger.debug(f"\n{restdesc}")
-            descriptions.append(restdesc)
+            filename = "_".join(path.replace("_", "x").split("/")[1:]) + ".n3"
+            logger.debug(f"{filename}\n{restdesc}")
 
-    return descriptions
+            logger.debug(f"Writing RESTdesc to {path}...")
+            path = os.path.join(directory, filename)
+            with open(path, "w") as fp:
+                fp.write(restdesc)
+
+            filenames.append(filename)
+
+    return filenames
 
 
 # http://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
