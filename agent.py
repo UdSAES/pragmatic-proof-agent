@@ -99,16 +99,19 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
 # http://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
 @task(
     iterable=["input_files"],
+    optional=["iteration"],
     help={
         "input_files": "The filenames of all input files",
         "agent_goal": "The name of the .n3-file specifying the agent's goal",
+        "iteration": "A non-negative integer used as postfix for the output files",
     },
 )
-def eye_generate_proof(ctx, input_files, agent_goal):
+def eye_generate_proof(ctx, input_files, agent_goal, iteration=0):
     """Generate proof using containerized EYE reasoner."""
 
     logger.info("Generating proof using EYE...")
 
+    # Assemble command
     dir_n3 = os.getenv("AGENT_TMP")
     workdir = "/mnt"
     image_name = os.getenv("EYE_IMAGE_NAME")
@@ -129,10 +132,27 @@ def eye_generate_proof(ctx, input_files, agent_goal):
     cmd = prefix + cmd_container
     logger.debug(cmd)
 
-    result = ctx.run(cmd, hide=True)
+    # Generate proof
+    result = ctx.run(cmd, hide=True, timeout=os.getenv("EYE_TIMEOUT", None))
+    content = result.stdout.replace("PREFIX", "@prefix")  # to avoid syntax errors
 
     logger.debug(f"Reasoning logs:\n{result.stderr}")
-    logger.debug(f"Proof deduced by EYE:\n{result.stdout}")
+    logger.debug(f"Proof deduced by EYE:\n{content}")
+
+    # Was the reasoner able to generate a proof?
+    # FIXME A non-zero return code does not imply a proof was found!
+    if result.ok:
+        status = SUCCESS
+    else:
+        status = FAILURE
+
+    # Store the proof as a file on disk
+    proof = f"proof_{iteration:0>2}.n3"
+    path = os.path.join(dir_n3, proof)
+    with open(path, "w") as fp:
+        fp.write(content)
+
+    return status, proof
 
 
 @task(
