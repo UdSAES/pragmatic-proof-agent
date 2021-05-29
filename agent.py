@@ -5,6 +5,7 @@
 
 
 import os
+import sys
 
 import requests
 from invoke import task
@@ -269,4 +270,12 @@ def solve_task(ctx, origin, directory, clean_tmp=False):
     B = None
 
     # Solve API composition problem
-    solve_api_composition_problem(ctx, H, g, R, B)
+    status = solve_api_composition_problem(ctx, H, g, R, B)
+
+    # Properly set exit code
+    if status == SUCCESS:
+        logger.info("Done!")
+    else:
+        logger.error("Terminating with non-zero exit code...")
+
+    sys.exit(status)
