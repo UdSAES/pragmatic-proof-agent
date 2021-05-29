@@ -7,54 +7,55 @@ import os
 
 import pytest
 import requests
+from loguru import logger
 
 
 class TestImageResizeAPI(object):
     origin = os.environ["IMG_API_ORIGIN"]
 
-    @pytest.mark.parametrize("filepath, origin", [("./tests/example.png", origin)])
-    def test_add_image(self, filepath, origin):
-        href = f"{origin}/images"
-        file_name = filepath.split("/")[-1]
-        files = {"image": (file_name, open(filepath, "rb"))}
-        r = requests.post(href, files=files)
-
-        print(r.headers)
-
-        assert r.status_code == 201
-
     @pytest.mark.parametrize(
-        "image_id, origin", [("0c2d99c897ad212c3fd8823e9b0b06ec", origin)]
-    )
-    def test_get_image(self, image_id, origin):
-        href = f"{origin}/images/{image_id}"
-        r = requests.get(href)
-
-        assert r.status_code == 200
-
-    @pytest.mark.parametrize(
-        "image_id, origin", [("0c2d99c897ad212c3fd8823e9b0b06ec", origin)]
-    )
-    def test_get_thumbnail(self, image_id, origin):
-        href = f"{origin}/images/{image_id}/thumbnail"
-        r = requests.get(href)
-
-        assert r.status_code == 200
-
-
-class TestRESTdescDiscovery(object):
-    origin = os.environ["IMG_API_ORIGIN"]
-
-    @pytest.mark.parametrize(
-        "origin,path",
+        "method, origin, path, accept, body, status_code",
         [
-            (origin, "/images"),
-            (origin, "/images/1"),
-            (origin, "/images/1/thumbnail"),
+            ("OPTIONS", origin, "/images", "text/n3", None, 200),
+            ("OPTIONS", origin, "/images/0/thumbnail", "text/n3", None, 200),
+            ("POST", origin, "/images", "image/png", "./tests/example.png", 201),
+            (
+                "GET",
+                origin,
+                "/images/0c2d99c897ad212c3fd8823e9b0b06ec",
+                "image/png",
+                "./tests/example.png",
+                200,
+            ),
+            (
+                "GET",
+                origin,
+                "/images/0c2d99c897ad212c3fd8823e9b0b06ec/thumbnail",
+                "image/png",
+                None,
+                200,
+            ),
         ],
     )
-    def test_get_rest_desc(self, origin, path):
+    def test_send_request(self, method, origin, path, accept, body, status_code):
         href = f"{origin}{path}"
-        r = requests.options(href)
+        headers = {"accept": accept}
 
-        assert r.status_code == 200
+        if body is not None:
+            file_name = body.split("/")[-1]
+            files = {"image": (file_name, open(body, "rb"))}
+
+        if method == "POST":
+            logger.debug(f"{method} {href}")
+            r = requests.post(href, headers=headers, files=files)
+
+        if method == "GET":
+            logger.debug(f"{method} {href}")
+            r = requests.get(href, headers=headers)
+
+        if method == "OPTIONS":
+            logger.debug(f"{method} {href}")
+            r = requests.options(href, headers=headers)
+
+        assert r.status_code == status_code
+        assert r.headers["content-type"].split(";")[0] == accept
