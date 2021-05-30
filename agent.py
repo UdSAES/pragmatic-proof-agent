@@ -168,7 +168,7 @@ def eye_generate_proof(ctx, input_files, agent_goal, iteration=0):
     with open(path, "w") as fp:
         fp.write(content)
 
-    return status, proof
+    return status, path
 
 
 @task(
