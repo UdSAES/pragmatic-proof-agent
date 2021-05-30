@@ -5,6 +5,7 @@
 
 
 import os
+import re
 import sys
 
 import requests
@@ -29,6 +30,17 @@ def delete_all_files(ctx, directory):
     for file in os.scandir(directory):
         logger.debug(f"Removing file {file.path}...")
         os.remove(file.path)
+
+
+def correct_n3_syntax(input):
+    """Fix N3 syntax variants not universally supported."""
+
+    pattern = re.compile(
+        r"^(?P<prefix>PREFIX) (?P<abbrv>[\w-]+:) (?P<url><[\w:\/\.#]+>)$", re.MULTILINE
+    )
+
+    output = pattern.sub(r"@prefix \g<abbrv> \g<url>.", input)
+    return output
 
 
 # Core functionality
@@ -136,7 +148,9 @@ def eye_generate_proof(ctx, input_files, agent_goal, iteration=0):
     # Generate proof
     timeout = int(os.getenv("EYE_TIMEOUT")) if os.getenv("EYE_TIMEOUT") else None
     result = ctx.run(cmd, hide=True, timeout=timeout)
-    content = result.stdout.replace("PREFIX", "@prefix")  # to avoid syntax errors
+
+    # Modify proof to ensure all parts of the stack understand the syntax
+    content = correct_n3_syntax(result.stdout)
 
     logger.debug(f"Reasoning logs:\n{result.stderr}")
     logger.debug(f"Proof deduced by EYE:\n{content}")
