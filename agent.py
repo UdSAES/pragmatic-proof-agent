@@ -8,6 +8,7 @@ import os
 import re
 import sys
 
+import rdflib
 import requests
 from invoke import task
 from loguru import logger
@@ -169,6 +170,52 @@ def eye_generate_proof(ctx, input_files, agent_goal, iteration=0):
         fp.write(content)
 
     return status, path
+
+
+@task(
+    iterable=["R"],
+    help={
+        "proof": "The .n3-file containing the proof",
+        "R": "The RESTdesc descriptions as .n3-files",
+        "prefix": "The path of the directory in which the .n3-files are found within the container",
+    },
+)
+def find_rule_applications(ctx, proof, R, prefix):
+    """Count how many times rules of R are applied in the proof."""
+
+    # Parse graph from n3-file
+    graph = rdflib.Graph()
+    graph.parse(proof, format="n3")
+
+    # Identify applications of R in proof
+    n_pre = 0
+    for file in R:
+        # Identify triple resulting from loading the source file containing part of R
+        file_name = file.split("/")[-1]
+        object = rdflib.URIRef(f"file://{prefix}/{file_name}")
+        logger.debug(f"Finding applications of rules stated in '{file_name}'...")
+
+        nodes = []
+        generator = graph.triples((None, None, object))
+        for s, p, o in generator:
+            nodes.append({"s": s, "p": p, "o": o})
+
+        if len(nodes) != 1:
+            logger.warning(f"File {file_name} loaded more than once or never!")
+
+        subject = nodes[0]["s"]
+
+        # Find triples in which the subject of `nodes[0]` is the object
+        rule_applications = []
+        generator = graph.triples((None, None, subject))
+        for s, p, o in generator:
+            rule_applications.append({"s": s, "p": p, "o": o})
+
+        # Increase `n_pre`
+        n_pre += len(rule_applications)
+
+    logger.trace(f"{n_pre=}")
+    return n_pre
 
 
 @task(

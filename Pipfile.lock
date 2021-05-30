@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "06739a9ab3725d9d470d488df3ce8d4d6d9366414ee72a2def21d9b026908e9c"
+            "sha256": "e205bb97f28c56fb674fe8fe98a5f07c5db929a04902693042f5c562bd706143"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -60,6 +60,13 @@
             "index": "pypi",
             "version": "==1.5.0"
         },
+        "isodate": {
+            "hashes": [
+                "sha256:2e364a3d5759479cdb2d37cce6b9376ea504db2ff90252a2e5b7cc89cc9ff2d8",
+                "sha256:aa4d33c06640f5352aca96e4b81afd8ab3b47337cc12089822d6f322ac772c81"
+            ],
+            "version": "==0.6.0"
+        },
         "loguru": {
             "hashes": [
                 "sha256:b28e72ac7a98be3d28ad28570299a393dfcd32e5e3f6a353dec94675767b6319",
@@ -104,6 +111,14 @@
             "index": "pypi",
             "version": "==6.2.4"
         },
+        "rdflib": {
+            "hashes": [
+                "sha256:78149dd49d385efec3b3adfbd61c87afaf1281c30d3fcaf1b323b34f603fb155",
+                "sha256:88208ea971a87886d60ae2b1a4b2cdc263527af0454c422118d43fe64b357877"
+            ],
+            "index": "pypi",
+            "version": "==5.0.0"
+        },
         "requests": {
             "hashes": [
                 "sha256:27973dd4a904a4f13b263a19c866c13b92a39ed1c964655f025f3f8d3d75b804",
@@ -111,6 +126,13 @@
             ],
             "index": "pypi",
             "version": "==2.25.1"
+        },
+        "six": {
+            "hashes": [
+                "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
+                "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
+            ],
+            "version": "==1.16.0"
         },
         "toml": {
             "hashes": [
