@@ -4,20 +4,10 @@
 """Unit tests for utitily functions."""
 
 import re
+
 import pytest
 
-
-def correct_n3_syntax(input):
-    """Fix N3 syntax variants not universally supported."""
-
-    # FIXME this should be imported from `agent.py` instead of copy-pasted!!
-
-    pattern = re.compile(
-        r"^(?P<prefix>PREFIX) (?P<abbrv>[\w-]+:) (?P<url><[\w:\/\.#]+>)$", re.MULTILINE
-    )
-
-    output = pattern.sub(r"@prefix \g<abbrv> \g<url>.", input)
-    return output
+import agent
 
 
 class TestUtitityFunctions(object):
@@ -49,6 +39,6 @@ class TestUtitityFunctions(object):
         ],
     )
     def test_correct_n3_syntax(self, input, expected):
-        actual = correct_n3_syntax(input)
+        actual = agent.correct_n3_syntax(input)
 
         assert actual == expected

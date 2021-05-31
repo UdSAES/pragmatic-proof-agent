@@ -14,3 +14,4 @@ import sys
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import agent  # noqa -- import has to happen _after_ modifying PATH

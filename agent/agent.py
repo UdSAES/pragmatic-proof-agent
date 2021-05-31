@@ -11,11 +11,8 @@ import sys
 import rdflib
 import requests
 from invoke import task
-from loguru import logger
 
-# Add separate log level for HTTP-requests
-logger.level("REQUEST", no=15, color="<cyan><b>")
-
+from . import logger
 
 # Global constants/magic variables
 SUCCESS = 0  # implies successful completion of an algorithm
