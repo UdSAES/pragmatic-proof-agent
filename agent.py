@@ -259,8 +259,9 @@ def solve_api_composition_problem(
         if status == FAILURE:
             return FAILURE
 
-        # TODO (1b) How many times are rules of R applied (i.e. how many API operations)?
-        # n_pre == ...
+        # (1b) How many times are rules of R applied (i.e. how many API operations)?
+        n_pre = find_rule_applications(ctx, pre_proof, R, workdir)
+        logger.debug(f"{n_pre=}")
 
     # (2) What does `n_pre` imply?
     if n_pre == 0:
