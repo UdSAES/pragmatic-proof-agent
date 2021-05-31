@@ -113,21 +113,21 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
 # http://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
 @task(
     iterable=["input_files"],
-    optional=["iteration"],
+    optional=["iteration", "workdir"],
     help={
         "input_files": "The filenames of all input files",
         "agent_goal": "The name of the .n3-file specifying the agent's goal",
         "iteration": "A non-negative integer used as postfix for the output files",
+        "workdir": "The directory inside the container at which files are mounted",
     },
 )
-def eye_generate_proof(ctx, input_files, agent_goal, iteration=0):
+def eye_generate_proof(ctx, input_files, agent_goal, iteration=0, workdir="/mnt"):
     """Generate proof using containerized EYE reasoner."""
 
     logger.info("Generating proof using EYE...")
 
     # Assemble command
     dir_n3 = os.getenv("AGENT_TMP")
-    workdir = "/mnt"
     image_name = os.getenv("EYE_IMAGE_NAME")
     prefix = (
         "docker run "
@@ -245,6 +245,8 @@ def solve_api_composition_problem(
     logger.debug(f"{R=}")
     logger.debug(f"{B=}")
 
+    workdir = "/mnt"
+
     if pre_proof == None:
         input_files = []
         input_files += R
@@ -253,7 +255,7 @@ def solve_api_composition_problem(
             input_files.append(B)
 
         # (1) Generate the (initial) pre-proof
-        status, pre_proof = eye_generate_proof(ctx, input_files, g, iteration)
+        status, pre_proof = eye_generate_proof(ctx, input_files, g, iteration, workdir)
         if status == FAILURE:
             return FAILURE
 
