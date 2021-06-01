@@ -4,9 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-black = "*"
 isort = "*"
 ansible = "*"
+black = "==21.5b2"
 
 [packages]
 requests = "*"
@@ -17,6 +17,3 @@ rdflib = "*"
 
 [requires]
 python_version = "3.8"
-
-[pipenv]
-allow_prereleases = true
