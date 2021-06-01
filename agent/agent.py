@@ -7,11 +7,13 @@
 import os
 import re
 import sys
+from urllib.parse import urlparse
 
 import rdflib
 import requests
 from invoke import task
 from loguru import logger
+from rdflib.plugins.sparql import prepareQuery
 
 # Configure logging
 log_level = os.getenv("AGENT_LOG_LEVEL", "INFO")
@@ -44,6 +46,81 @@ def correct_n3_syntax(input):
 
     output = pattern.sub(r"@prefix \g<abbrv> \g<url>.", input)
     return output
+
+
+def request_from_graph(graph):
+    """Extract parts of an HTTP request from a graph."""
+
+    http_ontology_prefix = "http://www.w3.org/2011/http#"
+    http_methods = [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "PATCH",
+    ]  # CONNECT, OPTIONS, TRACE are not part of RESTdesc (see definition 12)
+
+    request = None  # to be assigned later
+
+    # Query graph for relevant information using SPARQL
+    q0 = prepareQuery(
+        (
+            "SELECT ?method ?uri ?headers ?body "
+            "WHERE { "
+            "?s http:methodName ?method. "
+            "?s http:requestURI ?uri. "
+            "OPTIONAL { ?s http:headers ?headers. }"
+            "OPTIONAL { ?s http:body ?body. }"
+            "}"
+        ),
+        initNs={
+            "http": http_ontology_prefix,
+        },
+    )
+    a0 = graph.query(q0)
+
+    for method_rdfterm, uri_rdfterm, headers_rdfterm, body_rdfterm in a0:
+        logger.trace(
+            f"\n{method_rdfterm=}\n{uri_rdfterm=}"
+            f"\n{headers_rdfterm=}\n{body_rdfterm=}"
+        )
+
+        # Extract method and verify it's valid
+        method = method_rdfterm.n3().strip('"')
+        logger.trace(f"{method=}")
+
+        if not (method in http_methods):
+            logger.warning(f"{method=} is not an HTTP method!")
+            continue
+
+        # Check URI for completeness/distinguish from blank nodes
+        url = urlparse(uri_rdfterm.n3().strip('"'))
+        if url.scheme == "" or url.netloc == "":
+            logger.debug(f"{url=} is incomplete, i.e. _not_ ground!")
+            continue
+
+        # TODO Prepare dictionary of headers to send
+        headers = None
+
+        # Prepare dictionary of { filename: fileobject } to send
+        file_url = urlparse(body_rdfterm.n3().strip("<>"))
+        file_path = file_url.path
+        file_name = file_path.split("/")[-1]
+        files = {file_name: file_path}
+
+        # Create https://2.python-requests.org/en/master/api/#requests.Request-instance
+        request = requests.Request(
+            method=method, url=url.geturl(), headers=headers, files=files
+        )
+
+        logger.debug(
+            f"Found ground request:\n{request.method} {request.url} "
+            "with {request.headers=}, {request.files=}"
+        )
+
+    # TODO Verify that this also works iff there are several ground requests
+    return request
 
 
 # Core functionality
