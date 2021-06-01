@@ -275,13 +275,15 @@ def find_rule_applications(ctx, proof, R, prefix):
         logger.debug(f"Finding applications of rules stated in '{file_name}'...")
 
         # Count number of triples that match SPARQL query
-        q0 = prepareQuery((
-            "SELECT ?x ?y "
-            "WHERE { "
-            f"?x ?p0 {file_uriref.n3()}. "
-            "?y ?p1 ?x. "
-            "}"
-        ))
+        q0 = prepareQuery(
+            (
+                "SELECT ?x ?y "
+                "WHERE { "
+                f"?x ?p0 {file_uriref.n3()}. "
+                "?y ?p1 ?x. "
+                "}"
+            )
+        )
         a0 = graph.query(q0)
 
         for x, y in a0:
