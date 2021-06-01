@@ -194,30 +194,28 @@ def find_rule_applications(ctx, proof, R, prefix):
     for file in R:
         # Identify triple resulting from loading the source file containing part of R
         file_name = file.split("/")[-1]
-        object = rdflib.URIRef(f"file://{prefix}/{file_name}")
+        file_uriref = rdflib.URIRef(f"file://{prefix}/{file_name}")
         logger.debug(f"Finding applications of rules stated in '{file_name}'...")
 
-        nodes = []
-        generator = graph.triples((None, None, object))
-        for s, p, o in generator:
-            nodes.append({"s": s, "p": p, "o": o})
+        # Count number of triples that match SPARQL query
+        q0 = prepareQuery((
+            "SELECT ?x ?y "
+            "WHERE { "
+            f"?x ?p0 {file_uriref.n3()}. "
+            "?y ?p1 ?x. "
+            "}"
+        ))
+        a0 = graph.query(q0)
 
-        if len(nodes) != 1:
-            logger.warning(f"File {file_name} loaded more than once or never!")
-
-        subject = nodes[0]["s"]
-
-        # Find triples in which the subject of `nodes[0]` is the object
-        rule_applications = []
-        generator = graph.triples((None, None, subject))
-        for s, p, o in generator:
-            rule_applications.append({"s": s, "p": p, "o": o})
-
-        # Increase `n_pre`
-        n_pre += len(rule_applications)
+        for x, y in a0:
+            logger.trace(f"\n{x=}\n{y=}")
+            n_pre += 1
 
     logger.trace(f"{n_pre=}")
     return n_pre
+
+
+
 
 
 @task(
