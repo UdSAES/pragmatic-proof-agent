@@ -292,7 +292,72 @@ def find_rule_applications(ctx, proof, R, prefix):
     return n_pre
 
 
+@task(
+    iterable=["R"],
+    help={
+        "proof": "The .n3-file containing the proof",
+        "R": "The RESTdesc descriptions as .n3-files",
+        "prefix": "The path of the directory in which the .n3-files are found within the container",
+    },
+)
+def identify_http_requests(ctx, proof, R, prefix):
+    """Extract HTTP requests in proof resulting from R."""
 
+    requests_ground = []
+
+    # Read and parse entire proof from n3-file
+    graph = rdflib.Graph()
+    graph.parse(proof, format="n3")
+
+    # Iterate over all files comprising R
+    for file in R:
+        # Construct identifier for which to search
+        file_name = file.split("/")[-1]
+        file_uriref = rdflib.URIRef(f"file://{prefix}/{file_name}")
+        logger.debug(f"Finding applications of rules stated in '{file_name}'...")
+
+        # Find HTTP requests that are part of the application of a rule ∈ R
+        q0 = prepareQuery(
+            (
+                "SELECT ?a ?b ?c ?x "
+                "WHERE { "
+                f"?a r:source {file_uriref.n3()}. "
+                "?b ?p ?a. "
+                "?c r:rule ?b. "
+                "?c r:gives ?x. "
+                "}"
+            ),
+            initNs={
+                "r": "http://www.w3.org/2000/10/swap/reason#",
+            },
+        )
+        a0 = graph.query(q0)
+
+        # Inspect { N3 expression } and extract HTTP request info
+        for a, b, c, x in a0:
+            logger.trace(
+                (
+                    "Grounded SPARQL query to find { N3 } expression:\n"
+                    f"{a.n3()} r:source {file_uriref.n3()}\n"
+                    f"{b.n3()} ?p       {a.n3()}\n"
+                    f"{c.n3()} r:rule   {b.n3()}\n"
+                    f"{c.n3()} r:gives  {x.n3()}"
+                )
+            )
+
+            # Inspect individual triples (for debugging)
+            for s, p, o in x:
+                logger.trace(
+                    f"Triple in {x.n3()}:\n{s.n3()}\n--- {p.n3()}\n----- {o.n3()}"
+                )
+
+            # Extract method and request URI
+            req = request_from_graph(x)
+
+            if req != None:
+                requests_ground.append(req)
+
+    return requests_ground
 
 
 @task(
