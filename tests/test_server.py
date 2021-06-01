@@ -51,6 +51,7 @@ class TestImageResizeAPI(object):
     def test_send_request(self, method, origin, path, accept, body, status_code):
         href = f"{origin}{path}"
         headers = {"accept": accept}
+        files = None
 
         if status_code >= 400:
             expected_content_type = "application/problem+json"
@@ -61,17 +62,9 @@ class TestImageResizeAPI(object):
             file_name = body.split("/")[-1]
             files = {"image": (file_name, open(body, "rb"))}
 
-        if method == "POST":
-            logger.debug(f"{method} {href}")
-            r = requests.post(href, headers=headers, files=files)
-
-        if method == "GET":
-            logger.debug(f"{method} {href}")
-            r = requests.get(href, headers=headers)
-
-        if method == "OPTIONS":
-            logger.debug(f"{method} {href}")
-            r = requests.options(href, headers=headers)
+        # https://2.python-requests.org/en/master/api/#requests.request
+        logger.debug(f"{method} {href}")
+        r = requests.request(method, href, headers=headers, files=files)
 
         assert r.status_code == status_code
         assert r.headers["content-type"].split(";")[0] == expected_content_type
