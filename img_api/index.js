@@ -106,14 +106,20 @@ async function readResourceStateFromDisk (basePath) {
 
 // Describe hypermedia API using RESTdesc
 async function n3addImage (req, res) {
+  const host = _.get(req, ['headers', 'host'])
+  const protocol = _.get(req, ['protocol'])
+  const origin = `${protocol}://${host}`
+
   const cfg = await readConfig()
   const fileName = 'add_image.n3'
+
+  const url = `${origin}${cfg.paths.collectionOfImages}`
 
   res.format({
     'text/n3': async function () {
       res.set('Allow', 'POST,HEAD,OPTIONS')
       res.set('Content-Type', 'text/n3')
-      res.status(200).render(fileName, { path: cfg.paths.collectionOfImages })
+      res.status(200).render(fileName, { path: url })
     },
     default: async function () {
       await respondWithNotAcceptable(req, res)
