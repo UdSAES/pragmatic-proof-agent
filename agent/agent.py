@@ -13,6 +13,7 @@ import rdflib
 import requests
 from invoke import task
 from loguru import logger
+from rdflib.namespace import RDF
 from rdflib.plugins.sparql import prepareQuery
 
 # Configure logging
@@ -366,6 +367,50 @@ def identify_http_requests(ctx, proof, R, prefix):
                 requests_ground.append(req)
 
     return requests_ground
+
+
+def parse_http_response(response):
+    """Extract all triples from HTTP response object."""
+
+    request = response.request
+
+    # Prepare for parsing
+    HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
+    triples = []
+
+    # Create new individual which becomes the subject of all triples
+    subject = rdflib.BNode()  # identifier for the response
+
+    # Parse triples about the request method
+    triples.append((subject, HTTP.Method, rdflib.Literal(request.method)))
+
+    # Parse triples about the request URL
+    triples.append((subject, HTTP.requestURI, rdflib.URIRef(request.url)))
+
+    # Parse triples about the request/response headers
+    for r in [response, request]:
+        for name, value in r.headers.items():
+            header_bnode = rdflib.BNode()
+            if isinstance(r, requests.PreparedRequest):
+                triples.append((header_bnode, RDF.type, HTTP.RequestHeader))
+            elif isinstance(r, requests.Response):
+                triples.append((header_bnode, RDF.type, HTTP.ResponseHeader))
+            else:
+                triples.append((header_bnode, RDF.type, HTTP.MessageHeader))
+
+            triples.append((header_bnode, HTTP.fieldName, rdflib.Literal(name)))
+            triples.append((header_bnode, HTTP.fieldValue, rdflib.Literal(value)))
+
+            triples.append((subject, HTTP.headers, header_bnode))
+
+    # Parse triples about the request/response (-body)
+    triples.append(
+        (subject, HTTP.statusCodeNumber, rdflib.Literal(response.status_code))
+    )
+    triples.append((subject, HTTP.reasonPhrase, rdflib.Literal(response.reason)))
+    triples.append((subject, HTTP.body, rdflib.Literal(response.content)))
+
+    return triples
 
 
 @task(
