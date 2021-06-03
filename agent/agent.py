@@ -199,15 +199,15 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
 # http://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
 @task(
     iterable=["input_files"],
-    optional=["iteration", "workdir"],
+    optional=["suffix", "workdir"],
     help={
         "input_files": "The filenames of all input files",
         "agent_goal": "The name of the .n3-file specifying the agent's goal",
-        "iteration": "A non-negative integer used as postfix for the output files",
+        "suffix": "A suffix for the file name in which the proof is stored",
         "workdir": "The directory inside the container at which files are mounted",
     },
 )
-def eye_generate_proof(ctx, input_files, agent_goal, iteration=0, workdir="/mnt"):
+def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"):
     """Generate proof using containerized EYE reasoner."""
 
     logger.info("Generating proof using EYE...")
@@ -250,7 +250,7 @@ def eye_generate_proof(ctx, input_files, agent_goal, iteration=0, workdir="/mnt"
         status = FAILURE
 
     # Store the proof as a file on disk
-    proof = f"proof_{iteration:0>2}.n3"
+    proof = "proof.n3" if suffix is None else f"proof_{suffix}.n3"
     path = os.path.join(dir_n3, proof)
     with open(path, "w") as fp:
         fp.write(content)
@@ -450,7 +450,9 @@ def solve_api_composition_problem(
             input_files.append(B)
 
         # (1) Generate the (initial) pre-proof
-        status, pre_proof = eye_generate_proof(ctx, input_files, g, iteration, workdir)
+        status, pre_proof = eye_generate_proof(
+            ctx, input_files, g, f"{iteration:0>2}_pre", workdir
+        )
         if status == FAILURE:
             return FAILURE
 
