@@ -378,36 +378,49 @@ def parse_http_response(response):
     triples = []
 
     # Create new individual which becomes the subject of all triples
-    subject = rdflib.BNode()  # identifier for the response
+    request_node = rdflib.BNode()  # identifier for the request
+    response_node = rdflib.BNode()  # identifier for the response
 
     # Parse triples about the request method
-    triples.append((subject, HTTP.Method, rdflib.Literal(request.method)))
+    triples.append((request_node, HTTP.Method, rdflib.Literal(request.method)))
 
     # Parse triples about the request URL
-    triples.append((subject, HTTP.requestURI, rdflib.URIRef(request.url)))
+    triples.append((request_node, HTTP.requestURI, rdflib.URIRef(request.url)))
 
-    # Parse triples about the request/response headers
-    for r in [response, request]:
-        for name, value in r.headers.items():
-            header_bnode = rdflib.BNode()
-            if isinstance(r, requests.PreparedRequest):
-                triples.append((header_bnode, RDF.type, HTTP.RequestHeader))
-            elif isinstance(r, requests.Response):
-                triples.append((header_bnode, RDF.type, HTTP.ResponseHeader))
-            else:
-                triples.append((header_bnode, RDF.type, HTTP.MessageHeader))
+    # Parse triples about the request body
+    triples.append((request_node, RDF.type, HTTP.Request))
+    # triples.append((request_node, HTTP.body, rdflib.Literal(request.body)))
 
-            triples.append((header_bnode, HTTP.fieldName, rdflib.Literal(name)))
-            triples.append((header_bnode, HTTP.fieldValue, rdflib.Literal(value)))
+    # Parse triples about the request headers
+    for name, value in request.headers.items():
+        header_bnode = rdflib.BNode()
+        triples.append((header_bnode, RDF.type, HTTP.ResponseHeader))
+        triples.append((header_bnode, HTTP.fieldName, rdflib.Literal(name)))
+        triples.append((header_bnode, HTTP.fieldValue, rdflib.Literal(value)))
 
-            triples.append((subject, HTTP.headers, header_bnode))
+        triples.append((request_node, HTTP.headers, header_bnode))
 
-    # Parse triples about the request/response (-body)
+    # Parse triples about the response body
+    triples.append((response_node, RDF.type, HTTP.Response))
+    triples.append((response_node, HTTP.body, rdflib.Literal(response.content)))
+
+    # Parse triples about the response headers
+    for name, value in response.headers.items():
+        header_bnode = rdflib.BNode()
+        triples.append((header_bnode, RDF.type, HTTP.ResponseHeader))
+        triples.append((header_bnode, HTTP.fieldName, rdflib.Literal(name)))
+        triples.append((header_bnode, HTTP.fieldValue, rdflib.Literal(value)))
+
+        triples.append((response_node, HTTP.headers, header_bnode))
+
+    # Parse triples about the response status
     triples.append(
-        (subject, HTTP.statusCodeNumber, rdflib.Literal(response.status_code))
+        (response_node, HTTP.statusCodeNumber, rdflib.Literal(response.status_code))
     )
-    triples.append((subject, HTTP.reasonPhrase, rdflib.Literal(response.reason)))
-    triples.append((subject, HTTP.body, rdflib.Literal(response.content)))
+    triples.append((response_node, HTTP.reasonPhrase, rdflib.Literal(response.reason)))
+
+    # Connect response to request
+    triples.append((request_node, HTTP.resp, response_node))
 
     return triples
 
