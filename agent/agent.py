@@ -105,9 +105,15 @@ def request_from_graph(graph):
 
         # Prepare dictionary of { filename: fileobject } to send
         file_url = urlparse(body_rdfterm.n3().strip("<>"))
+        file_name = file_url.path.split("/")[-1]
         file_path = file_url.path
-        file_name = file_path.split("/")[-1]
-        files = {file_name: file_path}
+
+        if os.path.exists(file_path):
+            # XXX The use of "image" as key is SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
+            files = {"image": (file_name, open(file_path, "rb"))}
+        else:
+            logger.warning(f"File '{file_path}' does't exist, is the path correct?")
+            files = None
 
         # Create https://2.python-requests.org/en/master/api/#requests.Request-instance
         request = requests.Request(
