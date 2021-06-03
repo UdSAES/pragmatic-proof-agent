@@ -116,7 +116,7 @@ def request_from_graph(graph):
 
         logger.debug(
             f"Found ground request:\n{request.method} {request.url} "
-            "with {request.headers=}, {request.files=}"
+            f"with {request.headers=}, {request.files=}"
         )
 
     # TODO Verify that this also works iff there are several ground requests
