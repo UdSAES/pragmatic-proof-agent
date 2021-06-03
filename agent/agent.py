@@ -417,9 +417,16 @@ def solve_api_composition_problem(
     if n_pre == 0:
         return SUCCESS
 
-    # TODO (3) Which HTTP requests are sufficiently specified? -> select one
+    # (3) Which HTTP requests are sufficiently specified? -> select one
+    ground_requests = identify_http_requests(ctx, pre_proof, R, workdir)
+    request = ground_requests[0]
 
-    # TODO (4) Execute HTTP request
+    # (4) Execute HTTP request
+    logger.log("REQUEST", f"{request.method} {request.url}")
+
+    request_prepared = request.prepare()
+    session = requests.Session()
+    response_object = session.send(request_prepared)
 
     # TODO (4) Parse response, add to ground formulas (initial state)
 
