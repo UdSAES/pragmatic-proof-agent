@@ -26,6 +26,7 @@ logger.level("REQUEST", no=15, color="<cyan><b>")  # separate level for HTTP-req
 SUCCESS = 0  # implies successful completion of an algorithm
 FAILURE = 1  # implies that an algorithm failed to find a solution (_not_ an error!)
 
+HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
 
 # Utitily functions
 def delete_all_files(ctx, directory):
@@ -372,10 +373,8 @@ def identify_http_requests(ctx, proof, R, prefix):
 def parse_http_response(response):
     """Extract all triples from HTTP response object."""
 
-    request = response.request
-
     # Prepare for parsing
-    HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
+    request = response.request
     triples = []
 
     # Create new individual which becomes the subject of all triples
