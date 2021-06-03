@@ -437,22 +437,24 @@ def solve_api_composition_problem(
 
 @task(
     help={
+        "image": "The full path of the image for which to obtain a thumbnail",
         "origin": "The root URL to the service instance",
         "directory": "The directory in which to store the .n3-files",
         "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
     }
 )
-def solve_task(ctx, origin, directory, clean_tmp=False):
+def get_thumbnail(ctx, image, origin, directory, clean_tmp=False):
     """Collect definition of API composition problem."""
 
     if clean_tmp == True:
         delete_all_files(ctx, directory)
 
     # Specify _initial state H_
+    input_file = image
     initial_state = (
         "@prefix dbpedia: <http://dbpedia.org/resource/>.\n"
         "\n"
-        "<proof.png> a dbpedia:Image.\n"
+        f"<{input_file}> a dbpedia:Image.\n"
     )  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
     H = "agent_knowledge.n3"
 
@@ -460,9 +462,9 @@ def solve_task(ctx, origin, directory, clean_tmp=False):
     goal_state = (
         "@prefix dbpedia-owl: <http://dbpedia.org/ontology/>.\n"
         "\n"
-        "{ <proof.png> dbpedia-owl:thumbnail ?thumbnail. }\n"
+        "{ <" + input_file + "> dbpedia-owl:thumbnail ?thumbnail. }\n"
         "=>\n"
-        "{ <proof.png> dbpedia-owl:thumbnail ?thumbnail. }.\n"
+        "{ <" + input_file + "> dbpedia-owl:thumbnail ?thumbnail. }.\n"
     )  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
     g = "agent_goal.n3"
 
