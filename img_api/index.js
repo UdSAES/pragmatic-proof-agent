@@ -282,7 +282,7 @@ async function respondWithNotFound (req, res) {
 
 async function respondWithNotAcceptable (req, res) {
   await sendProblemDetail(res, {
-    title: 'Not acceptable',
+    title: 'Not Acceptable',
     status: 406,
     detail: 'The requested (hyper-) media type is not supported for this resource'
   })
