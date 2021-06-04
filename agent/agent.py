@@ -510,7 +510,7 @@ def parse_http_response(response):
     },
 )
 def solve_api_composition_problem(
-    ctx, H, g, R, B=None, pre_proof=None, n_pre=None, iteration=0
+    ctx, directory, H, g, R, B=None, pre_proof=None, n_pre=None, iteration=0
 ):
     """Recursively solve API composition problem."""
 
@@ -573,7 +573,7 @@ def solve_api_composition_problem(
     else:
         n_pre = n_post
         status = solve_api_composition_problem(
-            ctx, H, g, R, B, pre_proof, n_pre, iteration
+            ctx, directory, H, g, R, B, post_proof, n_pre, iteration
         )
         return status
 
@@ -624,7 +624,7 @@ def get_thumbnail(ctx, image, origin, directory, clean_tmp=False):
     B = None
 
     # Solve API composition problem
-    status = solve_api_composition_problem(ctx, [H], g, R, B)
+    status = solve_api_composition_problem(ctx, directory, [H], g, R, B)
 
     # Properly set exit code
     if status == SUCCESS:
