@@ -525,13 +525,13 @@ def solve_api_composition_problem(
 
     workdir = "/mnt"
 
-    if pre_proof == None:
-        input_files = []
-        input_files += R
-        input_files += H
-        if B is not None:
-            input_files.append(B)
+    input_files = []
+    input_files += R
+    input_files += H
+    if B is not None:
+        input_files.append(B)
 
+    if pre_proof == None:
         # (1) Generate the (initial) pre-proof
         status, pre_proof = eye_generate_proof(
             ctx, input_files, g, f"{iteration:0>2}_pre", workdir
