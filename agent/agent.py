@@ -313,6 +313,8 @@ def find_rule_applications(ctx, proof, R, prefix):
 def identify_http_requests(ctx, proof, R, prefix):
     """Extract HTTP requests in proof resulting from R."""
 
+    logger.info("Extracting ground HTTP requests in proof resulting from R...")
+
     requests_ground = []
 
     # Read and parse entire proof from n3-file
@@ -446,6 +448,8 @@ def parse_http_body(node, r):
 
 def parse_http_response(response):
     """Extract all triples from HTTP response object."""
+
+    logger.info("Extracting new information from HTTP response...")
 
     # Prepare for parsing
     request = response.request
