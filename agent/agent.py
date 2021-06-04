@@ -576,6 +576,21 @@ def solve_api_composition_problem(
     with open(os.path.join(directory, G), "w") as fp:
         fp.write(response_graph_serialized)
 
+    # (5) Generate post-proof
+    input_files.append(G)
+
+    status, post_proof = eye_generate_proof(
+        ctx, input_files, g, f"{iteration:0>2}_post", workdir
+    )
+
+    # (6) What is the value of `n_post`?
+    if status == FAILURE:
+        n_post = n_pre
+    else:
+        n_post = find_rule_applications(ctx, post_proof, R, workdir)
+
+    logger.debug(f"{n_pre=}; {n_post=}")
+
     # (7) What do the values of `n_pre` and `n_post` imply?
     iteration += 1
     if n_post >= n_pre:
