@@ -434,17 +434,7 @@ def parse_http_body(node, r):
             graph_n3 = r_body_graph.serialize(format="n3").decode("utf-8")
             logger.trace(f"Triples parsed from message body:\n{graph_n3}")
     else:
-        # Create triple for binary message body
-        if isinstance(r, requests.PreparedRequest):
-            # TODO Point to original file instead
-            f0 = f"{r.method.lower()}_{r.path_url[1:]}"
-            f1 = "request_body"
-        else:
-            f0 = f"{r.request.method.lower()}_{r.request.path_url[1:]}"
-            f1 = "response_content"
-
-        identifier = f"#{f0}_binary_{f1}"
-        triples.append((node, HTTP.body, rdflib.URIRef(identifier)))
+        logger.error("Parsing triples off of binary content not implemented yet!")
 
     return triples
 
