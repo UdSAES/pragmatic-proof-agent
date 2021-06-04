@@ -558,12 +558,23 @@ def solve_api_composition_problem(
     session = requests.Session()
     response_object = session.send(request_prepared)
 
-    # TODO (4) Parse response, add to ground formulas (initial state)
+    # (4) Parse response, add to ground formulas (initial state)
+    response_triples = parse_http_response(response_object)
 
-    # TODO (5) Generate post-proof
+    response_graph = rdflib.Graph()
+    response_graph.bind("http", HTTP)
 
-    # TODO (6) What is the value of `n_post`?
-    # n_post = ...
+    for s, p, o in response_triples:
+        response_graph.add((s, p, o))
+
+    # Write newly gained knowledge to disk
+    response_graph_serialized = response_graph.serialize(format="n3").decode("utf-8")
+    logger.debug(f"New information parsed from response:\n{response_graph_serialized}")
+
+    G = f"knowledge_gained_{iteration:0>2}.n3"
+
+    with open(os.path.join(directory, G), "w") as fp:
+        fp.write(response_graph_serialized)
 
     # (7) What do the values of `n_pre` and `n_post` imply?
     iteration += 1
