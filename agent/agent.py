@@ -545,6 +545,9 @@ def solve_api_composition_problem(
 
     # (2) What does `n_pre` imply?
     if n_pre == 0:
+        logger.info(
+            f"🎉 The pragmatic proof algorithm terminated successfully since {n_pre=}!"
+        )
         return SUCCESS
 
     # (3) Which HTTP requests are sufficiently specified? -> select one
