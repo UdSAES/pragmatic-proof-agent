@@ -75,8 +75,8 @@ async function readConfig () {
 
 // Perform actual work
 async function resizeImage (original, resized, size) {
-  await execFile('/usr/bin/convert', [original, '-resize', size, resized])
-  log.debug(`Resized file to ${size} px (keeping the aspect ratio)`)
+  await execFile('/usr/bin/convert', [original, '-resize', `x${size}`, resized])
+  log.debug(`Resized file to a height of ${size} px (keeping the aspect ratio)`)
 }
 
 async function readResourceStateFromDisk (basePath) {
