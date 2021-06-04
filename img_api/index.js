@@ -186,12 +186,16 @@ async function addImage (req, res) {
 
   // Acknowlegde successfull addition
   const imagePath = _.replace(cfg.paths.specificImage, ':imageId', hash)
+  const thumbnailPath = _.replace(cfg.paths.thumbnail, ':imageId', hash)
   res.format({
     'image/png': async function () {
+      res.set('Content-Type', 'text/n3')
       res
         .status(201)
-        .location(`${origin}${imagePath}`)
-        .send()
+        .render('add_image_response.n3', {
+          image_url: `${origin}${imagePath}`,
+          thumbnail_url: `${origin}${thumbnailPath}`
+        })
     },
     default: async function () {
       await respondWithNotAcceptable(req, res)

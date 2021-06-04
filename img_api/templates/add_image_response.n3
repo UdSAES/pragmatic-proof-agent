@@ -1,0 +1,4 @@
+@prefix ex: <http://example.org/image#>.
+
+<{{ image_url }}> ex:smallThumbnail <{{ thumbnail_url }}>.
+<{{ image_url }}> ex:comments <{{ image_url }}/comments>.
