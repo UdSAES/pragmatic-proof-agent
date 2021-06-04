@@ -160,8 +160,16 @@ async function addImage (req, res) {
   const baseDir = `${cfg.tmpDirectory}/images`
 
   // Create new identifier for image
-  const fileName = req.files.image.name
-  const buffer = req.files.image.data
+  let fileName
+  let buffer
+  const multipartFieldName = 'image' // FIXME Communicate via RESTdesc!!
+  try {
+    fileName = req.files[multipartFieldName].name
+    buffer = req.files[multipartFieldName].data
+  } catch (error) {
+    await respondWithBadRequest(req, res)
+    return
+  }
   const hash = crypto
     .createHash('md5')
     .update(buffer)
