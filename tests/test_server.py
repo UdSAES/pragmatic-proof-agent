@@ -10,6 +10,11 @@ import requests
 from loguru import logger
 
 
+test_data_base_path = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "tests", "data")
+)
+
+
 class TestImageResizeAPI(object):
     origin = os.environ["IMG_API_ORIGIN"]
 
@@ -19,20 +24,34 @@ class TestImageResizeAPI(object):
             ("OPTIONS", origin, "/images", "text/n3", None, 200),
             ("OPTIONS", origin, "/images/0", "text/n3", None, 200),
             ("OPTIONS", origin, "/images/0/thumbnail", "text/n3", None, 200),
-            ("POST", origin, "/images", "image/png", "./tests/example.png", 201),
-            ("POST", origin, "/images", "text/n3", "./tests/example.png", 406),
+            (
+                "POST",
+                origin,
+                "/images",
+                "image/png",
+                f"{test_data_base_path}/example.png",
+                201,
+            ),
+            (
+                "POST",
+                origin,
+                "/images",
+                "text/n3",
+                f"{test_data_base_path}/example.png",
+                406,
+            ),
             (
                 "GET",
                 origin,
-                "/images/0c2d99c897ad212c3fd8823e9b0b06ec",
+                "/images/90007eb1c2af27c8fbac3fc6db2f801a",
                 "image/png",
-                "./tests/example.png",
+                f"{test_data_base_path}/example.png",
                 200,
             ),
             (
                 "GET",
                 origin,
-                "/images/0c2d99c897ad212c3fd8823e9b0b06ec/thumbnail",
+                "/images/90007eb1c2af27c8fbac3fc6db2f801a/thumbnail",
                 "image/png",
                 None,
                 200,
