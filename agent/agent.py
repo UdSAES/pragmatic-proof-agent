@@ -97,7 +97,8 @@ def request_from_graph(graph):
             continue
 
         # Check URI for completeness/distinguish from blank nodes
-        url = urlparse(uri_rdfterm.n3().strip('"'))
+        url = urlparse(uri_rdfterm.n3().strip('<">'))
+
         if url.scheme == "" or url.netloc == "":
             logger.debug(f"{url=} is incomplete, i.e. _not_ ground!")
             continue
@@ -106,16 +107,17 @@ def request_from_graph(graph):
         headers = None
 
         # Prepare dictionary of { filename: fileobject } to send
-        file_url = urlparse(body_rdfterm.n3().strip("<>"))
-        file_name = file_url.path.split("/")[-1]
-        file_path = file_url.path
+        files = None
+        if body_rdfterm is not None:
+            file_url = urlparse(body_rdfterm.n3().strip("<>"))
+            file_name = file_url.path.split("/")[-1]
+            file_path = file_url.path
 
-        if os.path.exists(file_path):
-            # XXX The use of "image" as key is SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
-            files = {"image": (file_name, open(file_path, "rb"))}
-        else:
-            logger.warning(f"File '{file_path}' does't exist, is the path correct?")
-            files = None
+            if os.path.exists(file_path):
+                # XXX Use of "image" as key is SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
+                files = {"image": (file_name, open(file_path, "rb"))}
+            else:
+                logger.warning(f"File '{file_path}' does't exist, is the path correct?")
 
         # Create https://2.python-requests.org/en/master/api/#requests.Request-instance
         request = requests.Request(
