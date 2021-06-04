@@ -594,8 +594,11 @@ def solve_api_composition_problem(
     # (7) What do the values of `n_pre` and `n_post` imply?
     iteration += 1
     if n_post >= n_pre:
-        status = solve_api_composition_problem(ctx, H, g, R, B, None, None, iteration)
-        return status
+        logger.fatal(
+            "Handling situations where the post-proof doesn't match the pre-proof"
+            "is not yet implemented!!"
+        )
+        return FAILURE
     else:
         n_pre = n_post
         status = solve_api_composition_problem(
