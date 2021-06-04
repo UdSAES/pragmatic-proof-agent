@@ -187,8 +187,9 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
             filename = "_".join(path.replace("_", "x").split("/")[1:]) + ".n3"
             logger.debug(f"{filename}\n{restdesc}")
 
-            logger.debug(f"Writing RESTdesc to {path}...")
+            # Store on disk
             path = os.path.join(directory, filename)
+            logger.trace(f"Writing RESTdesc to {path}...")
             with open(path, "w") as fp:
                 fp.write(restdesc)
 
@@ -381,7 +382,7 @@ def parse_http_body(node, r):
     content_type_type = content_type.split("/")[0]
     content_type_subtype = content_type.split("/")[1]
     content_type_parameter = r.headers["content-type"].split(";")[1].lower()
-    logger.debug(f"The MIME type for the response is '{content_type}'")
+    logger.debug(f"The MIME type for the HTTP message is '{content_type}'")
 
     # Determine whether or not the message body is binary file
     if (content_type_type in ["audio", "image", "video"]) or (
