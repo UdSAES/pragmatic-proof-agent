@@ -610,7 +610,7 @@ def solve_api_composition_problem(
     # (7) What do the values of `n_pre` and `n_post` imply?
     iteration += 1
     if n_post >= n_pre:
-        logger.fatal(
+        logger.critical(
             "Handling situations where the post-proof doesn't match the pre-proof"
             "is not yet implemented!!"
         )
