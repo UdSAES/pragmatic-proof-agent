@@ -471,8 +471,7 @@ def parse_http_response(response):
         triples.append((request_node, HTTP.headers, header_bnode))
 
     # Parse triples about the request body
-    triples.append((request_node, RDF.type, HTTP.Request))
-    # triples.append((request_node, HTTP.body, rdflib.Literal(request.body)))
+    triples += parse_http_body(request_node, request)
 
     # Parse triples about the response status
     triples.append(
@@ -489,9 +488,12 @@ def parse_http_response(response):
 
         triples.append((response_node, HTTP.headers, header_bnode))
 
-    triples.append((response_node, RDF.type, HTTP.Response))
+    # Parse response body according to its (hyper-)media type
+    triples += parse_http_body(response_node, response)
 
     # Connect response to request
+    triples.append((request_node, RDF.type, HTTP.Request))
+    triples.append((response_node, RDF.type, HTTP.Response))
     triples.append((request_node, HTTP.resp, response_node))
 
     return triples
