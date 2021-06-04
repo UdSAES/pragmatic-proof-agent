@@ -370,6 +370,80 @@ def identify_http_requests(ctx, proof, R, prefix):
     return requests_ground
 
 
+def parse_http_body(node, r):
+    """Parse triples about a HTTP message body."""
+
+    triples = []
+
+    content_type = r.headers["content-type"].split(";")[0].lower()
+    content_type_type = content_type.split("/")[0]
+    content_type_subtype = content_type.split("/")[1]
+    content_type_parameter = r.headers["content-type"].split(";")[1].lower()
+    logger.debug(f"The MIME type for the response is '{content_type}'")
+
+    # Determine whether or not the message body is binary file
+    if (content_type_type in ["audio", "image", "video"]) or (
+        content_type == "application/octet-stream"
+    ):
+        content_is_binary = True
+    elif (
+        (content_type_type in ["text"])
+        or ("json" in content_type_subtype)
+        or ("xml" in content_type_subtype)
+        or (content_type in ["application/n-triples", "application/n-quads"])
+    ):
+        content_is_binary = False
+    else:
+        content_is_binary = True
+        logger.warning(
+            f"Don't know whether or not '{content_type}' is binary -> assuming it is!"
+        )
+
+    if not content_is_binary:
+        if content_type not in [
+            "application/ld+json",
+            "application/n-triples",
+            "application/n-quads",
+            "application/rdf+xml",
+            "text/n3",
+            "text/turtle",
+            "text/html",
+        ]:
+            logger.warning(
+                f"Found unsupported non-binary content-type '{content_type}';"
+                "won't attempt to parse that!"
+            )
+        else:
+            # Parse triples from non-binary message body
+            if isinstance(r, requests.Response):
+                data = r.text
+            else:
+                data = r.body
+            r_body_graph = rdflib.Graph()
+            r_body_graph.parse(data=data, format=content_type)
+
+            for s, p, o in r_body_graph:
+                triples.append((s, p, o))
+                triples.append((node, HTTP.body, s))
+
+            graph_n3 = r_body_graph.serialize(format="n3").decode("utf-8")
+            logger.trace(f"Triples parsed from message body:\n{graph_n3}")
+    else:
+        # Create triple for binary message body
+        if isinstance(r, requests.PreparedRequest):
+            # TODO Point to original file instead
+            f0 = f"{r.method.lower()}_{r.path_url[1:]}"
+            f1 = "request_body"
+        else:
+            f0 = f"{r.request.method.lower()}_{r.request.path_url[1:]}"
+            f1 = "response_content"
+
+        identifier = f"#{f0}_binary_{f1}"
+        triples.append((node, HTTP.body, rdflib.URIRef(identifier)))
+
+    return triples
+
+
 def parse_http_response(response):
     """Extract all triples from HTTP response object."""
 
