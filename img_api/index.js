@@ -168,7 +168,7 @@ async function addImage (req, res) {
     .digest('hex')
 
   // Store file on disk
-  const filePath = `${baseDir}/${fileName}`
+  const filePath = `${baseDir}/${hash}`
   const filePathExists = await fs.pathExists(filePath)
 
   if (!filePathExists) {
@@ -239,7 +239,7 @@ async function getThumbnail (req, res) {
   const cfg = await readConfig()
   const baseDir = `${cfg.tmpDirectory}/thumbs`
 
-  const thumbnail = `${baseDir}/${fileName}`
+  const thumbnail = `${baseDir}/${hash}`
 
   await fs.ensureDir(baseDir)
   await resizeImage(filePath, thumbnail, 80)
