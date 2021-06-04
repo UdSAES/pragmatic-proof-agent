@@ -111,7 +111,7 @@ async function n3addImage (req, res) {
   const origin = `${protocol}://${host}`
 
   const cfg = await readConfig()
-  const fileName = 'add_image.n3'
+  const fileName = 'add_image_restdesc.n3'
 
   const url = `${origin}${cfg.paths.collectionOfImages}`
 
@@ -132,7 +132,7 @@ async function n3getImage (req, res) {
 }
 
 async function n3getThumbnail (req, res) {
-  const fileName = 'get_thumbnail.n3'
+  const fileName = 'get_thumbnail_restdesc.n3'
 
   res.format({
     'text/n3': async function () {
@@ -295,7 +295,7 @@ async function init () {
   // Instantiate express-application and set up middleware-stack
   const app = express()
   app.use(fileUpload())
-  nunjucks.configure('restdesc', { autoescape: true, express: app })
+  nunjucks.configure('templates', { autoescape: true, express: app })
 
   // Log every request
   app.use(async function (req, res, next) {
