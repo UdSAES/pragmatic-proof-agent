@@ -288,6 +288,14 @@ async function respondWithNotAcceptable (req, res) {
   })
 }
 
+async function respondWithBadRequest (req, res) {
+  await sendProblemDetail(res, {
+    title: 'Bad Request',
+    status: 400,
+    detail: 'The request was malformed and the server refuses to process it'
+  })
+}
+
 // Initialize server
 async function init () {
   const cfg = await readConfig()
