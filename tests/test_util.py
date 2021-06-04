@@ -14,9 +14,13 @@ import requests
 import agent
 
 
+test_data_base_path = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "tests", "data")
+)
+
+
 class TestUtitityFunctions(object):
     origin = os.environ["IMG_API_ORIGIN"]
-    tmpdir = os.environ["AGENT_TMP"]
 
     @pytest.mark.parametrize(
         "input, expected",
@@ -54,17 +58,25 @@ class TestUtitityFunctions(object):
         "proof, R, prefix, expected",
         [
             (
-                f"{tmpdir}/proof_00.n3",
+                os.path.join(test_data_base_path, "proof_00.n3"),
                 [
-                    f"{tmpdir}/images.n3",
-                    f"{tmpdir}/images_x_thumbnail.n3",
+                    os.path.join(test_data_base_path, "images.n3"),
+                    os.path.join(test_data_base_path, "images_x_thumbnail.n3"),
                 ],
                 "/mnt",
                 [
                     requests.Request(
                         "POST",
                         f"{origin}/images",
-                        files={"proof.png": "/mnt/proof.png"},
+                        files={
+                            "image": (
+                                "example.png",
+                                open(
+                                    os.path.join(test_data_base_path, "example.png"),
+                                    "rb",
+                                ),
+                            )
+                        },
                     )
                 ],
             )
@@ -78,4 +90,7 @@ class TestUtitityFunctions(object):
         assert len(results) == len(expected)
 
         for index, actual in enumerate(results):
-            assert actual.__dict__ == expected[index].__dict__
+            assert actual.method == expected[index].method
+            assert actual.url == expected[index].url
+            assert actual.headers == expected[index].headers
+            assert actual.files["image"][0] == expected[index].files["image"][0]
