@@ -504,10 +504,10 @@ def parse_http_response(response):
 
 
 @task(
-    iterable=["R"],
+    iterable=["H", "R"],
     optional=["B", "pre_proof", "n_pre"],
     help={
-        "H": ".n3-file containing the initial state",
+        "H": ".n3-files containing the initial state",
         "g": ".n3-file specifying the agent's goal",
         "R": "The RESTdesc descriptions as .n3-files",
         "B": ".n3-file containing background knowledge",
@@ -535,7 +535,7 @@ def solve_api_composition_problem(
     if pre_proof == None:
         input_files = []
         input_files += R
-        input_files.append(H)
+        input_files += H
         if B is not None:
             input_files.append(B)
 
@@ -631,7 +631,7 @@ def get_thumbnail(ctx, image, origin, directory, clean_tmp=False):
     B = None
 
     # Solve API composition problem
-    status = solve_api_composition_problem(ctx, H, g, R, B)
+    status = solve_api_composition_problem(ctx, [H], g, R, B)
 
     # Properly set exit code
     if status == SUCCESS:
