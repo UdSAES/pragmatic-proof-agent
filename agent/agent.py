@@ -549,12 +549,12 @@ def solve_api_composition_problem(
 
     # (3) Which HTTP requests are sufficiently specified? -> select one
     ground_requests = identify_http_requests(ctx, pre_proof, R, workdir)
-    request = ground_requests[0]
+    request_object = ground_requests[0]
 
     # (4) Execute HTTP request
-    logger.log("REQUEST", f"{request.method} {request.url}")
+    logger.log("REQUEST", f"{request_object.method} {request_object.url}")
 
-    request_prepared = request.prepare()
+    request_prepared = request_object.prepare()
     session = requests.Session()
     response_object = session.send(request_prepared)
 
