@@ -380,10 +380,23 @@ def parse_http_body(node, r):
 
     triples = []
 
-    content_type = r.headers["content-type"].split(";")[0].lower()
+    # Identify MIME type of the message body
+    try:
+        content_type_parts = r.headers["content-type"].split(";")
+    except KeyError:
+        logger.warning(
+            f"{r=} doesn't have a 'content-type'-header, "
+            "aborting attempt to parse body..."
+        )
+        return triples
+
+    content_type = content_type_parts[0]
     content_type_type = content_type.split("/")[0]
     content_type_subtype = content_type.split("/")[1]
-    content_type_parameter = r.headers["content-type"].split(";")[1].lower()
+
+    if len(content_type_parts) == 2:
+        content_type_parameter = content_type_parts[1]
+
     logger.debug(f"The MIME type for the HTTP message is '{content_type}'")
 
     # Determine whether or not the message body is binary file
