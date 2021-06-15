@@ -121,7 +121,7 @@ def request_from_graph(graph):
         # TODO Prepare dictionary of headers to send
         headers = None
 
-        # Prepare dictionary of { filename: fileobject } to send
+        # TODO Prepare body to send
         files = None
         if body_rdfterm is not None:
             file_url = urlparse(body_rdfterm.n3().strip("<>"))
@@ -144,7 +144,7 @@ def request_from_graph(graph):
             f"with {request.headers=}, {request.files=}"
         )
 
-    # TODO Verify that this also works iff there are several ground requests
+    # FIXME What happens if there are several ground requests??
     return request
 
 
@@ -469,12 +469,15 @@ def parse_http_body(node, r):
 
             graph_n3 = r_body_graph.serialize(format="n3").decode("utf-8")
             logger.trace(f"Triples parsed from message body:\n{graph_n3}")
+        elif content_type == "multipart/form-data":
+            raise NotImplementedError  # TODO
         else:
             logger.warning(
                 f"Found unsupported non-binary content-type '{content_type}'; "
                 "won't attempt to parse that!"
             )
     else:
+        # TODO Parse triples off of binary content?
         logger.error("Parsing triples off of binary content not implemented yet!")
 
     return triples
@@ -617,6 +620,7 @@ def solve_api_composition_problem(
         fp.write(response_graph_serialized)
 
     # (5a) Update agent knowledge by creating union of sets H and G; write to disk
+    # FIXME should this be a merge or the set operation G1 + G2??
     H_union_G = rdflib.Graph()
     H_union_G.namespace_manager = NAMESPACE_MANAGER
     H_union_G.parse(os.path.join(directory, H[0]), format="n3")
@@ -684,7 +688,7 @@ def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
     g = "agent_goal.n3"
 
     # Store initial state and the agent's goal as .n3 files on disk
-    image_rdfterm = rdflib.Literal("example.png")
+    image_rdfterm = rdflib.Literal("example.png")  # XXX is hardcoding a good idea? No!
     for template, filename in [(initial_state, H), (goal_state, g)]:
         path = os.path.join(directory, filename)
         with open(path, "w") as fp:
