@@ -631,11 +631,11 @@ def solve_api_composition_problem(
     # (7) What do the values of `n_pre` and `n_post` imply?
     iteration += 1
     if n_post >= n_pre:
-        logger.critical(
-            "Handling situations where the post-proof doesn't match the pre-proof"
-            "is not yet implemented!!"
+        R_difference_r = [x for x in R if not x == r]
+        status = solve_api_composition_problem(
+            ctx, directory, H, g, R_difference_r, B, None, None, iteration
         )
-        return FAILURE
+        return status
     else:
         n_pre = n_post
         status = solve_api_composition_problem(
