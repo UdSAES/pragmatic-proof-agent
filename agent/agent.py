@@ -601,9 +601,21 @@ def solve_api_composition_problem(
     with open(os.path.join(directory, G), "w") as fp:
         fp.write(response_graph_serialized)
 
-    # (5) Generate post-proof
-    input_files.append(G)
+    # (5a) Update agent knowledge by creating union of sets H and G; write to disk
+    H_union_G = rdflib.Graph()
+    H_union_G.parse(os.path.join(directory, H[0]), format="n3")
+    H_union_G.parse(os.path.join(directory, G), format="n3")
 
+    agent_knowledge_updated = H_union_G.serialize(format="n3").decode("utf-8")
+    logger.debug(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
+
+    agent_knowledge = f"agent_knowledge_{iteration:0>2}_post.n3"
+
+    with open(os.path.join(directory, agent_knowledge), "w") as fp:
+        fp.write(agent_knowledge_updated)
+
+    # (5b) Generate post-proof
+    input_files = concatenate_eye_input_files(R, [agent_knowledge])
     status, post_proof = eye_generate_proof(
         ctx, input_files, g, f"{iteration:0>2}_post", workdir
     )
