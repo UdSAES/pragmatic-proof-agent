@@ -646,35 +646,27 @@ def solve_api_composition_problem(
 
 @task(
     help={
-        "image": "The full path of the image for which to obtain a thumbnail",
+        "initial_state": "The .n3 file describing the initial state H",
+        "goal": "The .n3 file describing the agent's goal g",
         "origin": "The root URL to the service instance",
         "directory": "The directory in which to store the .n3-files",
         "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
     }
 )
-def get_thumbnail(ctx, image, origin, directory, clean_tmp=False):
+def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
     """Collect definition of API composition problem."""
 
     if clean_tmp == True:
         delete_all_files(ctx, directory)
 
     # Specify _initial state H_
-    input_file = image
-    initial_state = (
-        "@prefix dbpedia: <http://dbpedia.org/resource/>.\n"
-        "\n"
-        f"<{input_file}> a dbpedia:Image.\n"
-    )  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
+    with open(os.getenv("AGENT_INITIAL_STATE"), "r") as fp:
+        initial_state = fp.read()
     H = "agent_knowledge.n3"
 
     # Define the _goal state g_, i.e. the agent's objective
-    goal_state = (
-        "@prefix dbpedia-owl: <http://dbpedia.org/ontology/>.\n"
-        "\n"
-        "{ <" + input_file + "> dbpedia-owl:thumbnail ?thumbnail. }\n"
-        "=>\n"
-        "{ <" + input_file + "> dbpedia-owl:thumbnail ?thumbnail. }.\n"
-    )  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
+    with open(os.getenv("AGENT_GOAL"), "r") as fp:
+        goal_state = fp.read()
     g = "agent_goal.n3"
 
     # Store initial state and the agent's goal as .n3 files on disk
