@@ -14,6 +14,7 @@ pytest = "*"
 invoke = "*"
 loguru = "*"
 rdflib = "*"
+jinja2 = "*"
 
 [requires]
 python_version = "3.8"

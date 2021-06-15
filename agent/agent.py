@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 import rdflib
 import requests
 from invoke import task
+from jinja2 import Environment, FileSystemLoader
 from loguru import logger
 from rdflib.namespace import RDF
 from rdflib.plugins.sparql import prepareQuery
@@ -27,6 +28,12 @@ SUCCESS = 0  # implies successful completion of an algorithm
 FAILURE = 1  # implies that an algorithm failed to find a solution (_not_ an error!)
 
 HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
+
+ENV = Environment(
+    loader=FileSystemLoader(os.getenv("AGENT_TEMPLATES")),
+    trim_blocks=True,
+    lstrip_blocks=True,
+)
 
 # Utitily functions
 def delete_all_files(ctx, directory):
@@ -660,20 +667,19 @@ def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
         delete_all_files(ctx, directory)
 
     # Specify _initial state H_
-    with open(os.getenv("AGENT_INITIAL_STATE"), "r") as fp:
-        initial_state = fp.read()
+    initial_state = ENV.get_template(os.getenv("AGENT_INITIAL_STATE"))
     H = "agent_knowledge.n3"
 
     # Define the _goal state g_, i.e. the agent's objective
-    with open(os.getenv("AGENT_GOAL"), "r") as fp:
-        goal_state = fp.read()
+    goal_state = ENV.get_template(os.getenv("AGENT_GOAL"))
     g = "agent_goal.n3"
 
     # Store initial state and the agent's goal as .n3 files on disk
-    for content, filename in [(initial_state, H), (goal_state, g)]:
+    image_rdfterm = rdflib.Literal("example.png")
+    for template, filename in [(initial_state, H), (goal_state, g)]:
         path = os.path.join(directory, filename)
         with open(path, "w") as fp:
-            fp.write(content)
+            fp.write(template.render(image=image_rdfterm.n3()))
 
     # Discover _description formulas R_ (RESTdesc descriptions)
     R = download_restdesc(ctx, origin, directory, False)
