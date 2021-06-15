@@ -133,6 +133,16 @@ def request_from_graph(graph):
     return request
 
 
+def concatenate_eye_input_files(R, H, B=None):
+    input_files = []
+    input_files += R
+    input_files += H
+    if B is not None:
+        input_files.append(B)
+
+    return input_files
+
+
 # Core functionality
 @task(
     help={
@@ -541,11 +551,7 @@ def solve_api_composition_problem(
 
     workdir = "/mnt"
 
-    input_files = []
-    input_files += R
-    input_files += H
-    if B is not None:
-        input_files.append(B)
+    input_files = concatenate_eye_input_files(R, H, B=None)
 
     if pre_proof == None:
         # (1) Generate the (initial) pre-proof
