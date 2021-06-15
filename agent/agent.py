@@ -383,7 +383,7 @@ def identify_http_requests(ctx, proof, R, prefix):
             req = request_from_graph(x)
 
             if req != None:
-                requests_ground.append(req)
+                requests_ground.append((file, req))
 
     return requests_ground
 
@@ -574,7 +574,7 @@ def solve_api_composition_problem(
 
     # (3) Which HTTP requests are sufficiently specified? -> select one
     ground_requests = identify_http_requests(ctx, pre_proof, R, workdir)
-    request_object = ground_requests[0]
+    r, request_object = ground_requests[0]
 
     # (4) Execute HTTP request
     logger.log("REQUEST", f"{request_object.method} {request_object.url}")
