@@ -438,7 +438,7 @@ def parse_http_body(node, r):
         )
 
     if not content_is_binary:
-        if content_type not in [
+        if content_type in [
             "application/ld+json",
             "application/n-triples",
             "application/n-quads",
@@ -447,11 +447,6 @@ def parse_http_body(node, r):
             "text/turtle",
             "text/html",
         ]:
-            logger.warning(
-                f"Found unsupported non-binary content-type '{content_type}';"
-                "won't attempt to parse that!"
-            )
-        else:
             # Parse triples from non-binary message body
             if isinstance(r, requests.Response):
                 data = r.text
@@ -466,6 +461,11 @@ def parse_http_body(node, r):
 
             graph_n3 = r_body_graph.serialize(format="n3").decode("utf-8")
             logger.trace(f"Triples parsed from message body:\n{graph_n3}")
+        else:
+            logger.warning(
+                f"Found unsupported non-binary content-type '{content_type}'; "
+                "won't attempt to parse that!"
+            )
     else:
         logger.error("Parsing triples off of binary content not implemented yet!")
 
