@@ -247,10 +247,13 @@ def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"
     logger.debug(f"Proof deduced by EYE:\n{content}")
 
     # Was the reasoner able to generate a proof?
-    # FIXME A non-zero return code does not imply a proof was found!
-    if result.ok:
+    graph = rdflib.Graph()
+    graph.parse(data=content, format="n3")
+
+    if result.ok and (len(graph) > 0):
         status = SUCCESS
     else:
+        logger.error("EYE was unable to generate a proof, halting with FAILURE!")
         status = FAILURE
 
     # Store the proof as a file on disk
