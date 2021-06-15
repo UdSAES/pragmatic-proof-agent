@@ -14,8 +14,7 @@ import requests
 from invoke import task
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
-from rdflib.namespace import RDF
-from rdflib.plugins.sparql import prepareQuery
+from rdflib.namespace import OWL, RDF, NamespaceManager
 
 # Configure logging
 log_level = os.getenv("AGENT_LOG_LEVEL", "INFO")
@@ -27,13 +26,27 @@ logger.level("REQUEST", no=15, color="<cyan><b>")  # separate level for HTTP-req
 SUCCESS = 0  # implies successful completion of an algorithm
 FAILURE = 1  # implies that an algorithm failed to find a solution (_not_ an error!)
 
-HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
-
+# Environment to be used when rendering templates using Jinja2
 ENV = Environment(
     loader=FileSystemLoader(os.getenv("AGENT_TEMPLATES")),
     trim_blocks=True,
     lstrip_blocks=True,
 )
+
+# Use namespace manager to enforce consistent prefixes
+# https://rdflib.readthedocs.io/en/latest/namespaces_and_bindings.html
+# --""--/apidocs/rdflib.html#rdflib.namespace.NamespaceManager
+HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
+
+NAMESPACE_MANAGER = NamespaceManager(rdflib.Graph())
+
+# FIXME read prefixes/namespaces from files instead of hardcoding?
+NAMESPACE_MANAGER.bind("rdf", RDF)
+NAMESPACE_MANAGER.bind("owl", OWL)
+NAMESPACE_MANAGER.bind("http", HTTP)
+NAMESPACE_MANAGER.bind("r", rdflib.Namespace("http://www.w3.org/2000/10/swap/reason#"))
+NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))
+
 
 # Utitily functions
 def delete_all_files(ctx, directory):
@@ -60,7 +73,6 @@ def correct_n3_syntax(input):
 def request_from_graph(graph):
     """Extract parts of an HTTP request from a graph."""
 
-    http_ontology_prefix = "http://www.w3.org/2011/http#"
     http_methods = [
         "GET",
         "POST",
@@ -73,7 +85,7 @@ def request_from_graph(graph):
     request = None  # to be assigned later
 
     # Query graph for relevant information using SPARQL
-    q0 = prepareQuery(
+    a0 = graph.query(
         (
             "SELECT ?method ?uri ?headers ?body "
             "WHERE { "
@@ -82,12 +94,8 @@ def request_from_graph(graph):
             "OPTIONAL { ?s http:headers ?headers. }"
             "OPTIONAL { ?s http:body ?body. }"
             "}"
-        ),
-        initNs={
-            "http": http_ontology_prefix,
-        },
+        )
     )
-    a0 = graph.query(q0)
 
     for method_rdfterm, uri_rdfterm, headers_rdfterm, body_rdfterm in a0:
         logger.trace(
@@ -265,6 +273,7 @@ def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"
 
     # Was the reasoner able to generate a proof?
     graph = rdflib.Graph()
+    graph.namespace_manager = NAMESPACE_MANAGER
     graph.parse(data=content, format="n3")
 
     if result.ok and (len(graph) > 0):
@@ -295,6 +304,7 @@ def find_rule_applications(ctx, proof, R, prefix):
 
     # Parse graph from n3-file
     graph = rdflib.Graph()
+    graph.namespace_manager = NAMESPACE_MANAGER
     graph.parse(proof, format="n3")
 
     # Identify applications of R in proof
@@ -306,7 +316,7 @@ def find_rule_applications(ctx, proof, R, prefix):
         logger.debug(f"Finding applications of rules stated in '{file_name}'...")
 
         # Count number of triples that match SPARQL query
-        q0 = prepareQuery(
+        a0 = graph.query(
             (
                 "SELECT ?x ?y "
                 "WHERE { "
@@ -315,7 +325,6 @@ def find_rule_applications(ctx, proof, R, prefix):
                 "}"
             )
         )
-        a0 = graph.query(q0)
 
         for x, y in a0:
             logger.trace(f"\n{x=}\n{y=}")
@@ -342,6 +351,7 @@ def identify_http_requests(ctx, proof, R, prefix):
 
     # Read and parse entire proof from n3-file
     graph = rdflib.Graph()
+    graph.namespace_manager = NAMESPACE_MANAGER
     graph.parse(proof, format="n3")
 
     # Iterate over all files comprising R
@@ -352,7 +362,7 @@ def identify_http_requests(ctx, proof, R, prefix):
         logger.debug(f"Finding applications of rules stated in '{file_name}'...")
 
         # Find HTTP requests that are part of the application of a rule ∈ R
-        q0 = prepareQuery(
+        a0 = graph.query(
             (
                 "SELECT ?a ?b ?c ?x "
                 "WHERE { "
@@ -361,12 +371,8 @@ def identify_http_requests(ctx, proof, R, prefix):
                 "?c r:rule ?b. "
                 "?c r:gives ?x. "
                 "}"
-            ),
-            initNs={
-                "r": "http://www.w3.org/2000/10/swap/reason#",
-            },
+            )
         )
-        a0 = graph.query(q0)
 
         # Inspect { N3 expression } and extract HTTP request info
         for a, b, c, x in a0:
@@ -387,6 +393,7 @@ def identify_http_requests(ctx, proof, R, prefix):
                 )
 
             # Extract method and request URI
+            x.namespace_manager = NAMESPACE_MANAGER
             req = request_from_graph(x)
 
             if req != None:
@@ -453,6 +460,7 @@ def parse_http_body(node, r):
             else:
                 data = r.body
             r_body_graph = rdflib.Graph()
+            r_body_graph.namespace_manager = NAMESPACE_MANAGER
             r_body_graph.parse(data=data, format=content_type)
 
             for s, p, o in r_body_graph:
@@ -594,7 +602,7 @@ def solve_api_composition_problem(
     response_triples = parse_http_response(response_object)
 
     response_graph = rdflib.Graph()
-    response_graph.bind("http", HTTP)
+    response_graph.namespace_manager = NAMESPACE_MANAGER
 
     for s, p, o in response_triples:
         response_graph.add((s, p, o))
@@ -610,6 +618,7 @@ def solve_api_composition_problem(
 
     # (5a) Update agent knowledge by creating union of sets H and G; write to disk
     H_union_G = rdflib.Graph()
+    H_union_G.namespace_manager = NAMESPACE_MANAGER
     H_union_G.parse(os.path.join(directory, H[0]), format="n3")
     H_union_G.parse(os.path.join(directory, G), format="n3")
 
