@@ -196,12 +196,19 @@ async function addImage (req, res) {
   const imagePath = _.replace(cfg.paths.specificImage, ':imageId', hash)
   const thumbnailPath = _.replace(cfg.paths.thumbnail, ':imageId', hash)
   res.format({
-    'image/png': async function () {
+    // 'image/png': async function () {
+    //   res
+    //     .status(201)
+    //     .location(`${origin}${imagePath}`)
+    //     .send()
+    // },
+    'text/n3': async function () {
       res.set('Content-Type', 'text/n3')
       res
         .status(201)
         .render('add_image_response.n3', {
-          image_url: `${origin}${imagePath}`,
+          // image_url: `${origin}${imagePath}`,
+          image_id: 'example.png',
           thumbnail_url: `${origin}${thumbnailPath}`
         })
     },
@@ -232,6 +239,10 @@ async function getImage (req, res) {
 }
 
 async function getThumbnail (req, res) {
+  const host = _.get(req, ['headers', 'host'])
+  const protocol = _.get(req, ['protocol'])
+  const origin = `${protocol}://${host}`
+
   const hash = _.nth(_.split(req.path, '/'), -2)
 
   let filePath
@@ -255,6 +266,15 @@ async function getThumbnail (req, res) {
   res.format({
     'image/png': async function () {
       res.sendFile(thumbnail)
+    },
+    'text/n3': async function () {
+      res.set('Content-Type', 'text/n3')
+      res
+        .status(201)
+        .render('get_thumbnail_response.n3', {
+          image_id: 'example.png',
+          thumbnail_url: `${origin}${req.path}`
+        })
     },
     default: async function () {
       await respondWithNotAcceptable(req, res)
