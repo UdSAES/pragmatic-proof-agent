@@ -209,6 +209,13 @@ async function addImage (req, res) {
         thumbnail_url: `${origin}${thumbnailPath}`
       })
     },
+    'application/ld+json': async function () {
+      res.set('Content-Type', 'application/ld+json')
+      res.status(201).render('add_image_response.jsonld.j2', {
+        image_id: fileName,
+        thumbnail_url: `${origin}${thumbnailPath}`
+      })
+    },
     default: async function () {
       await respondWithNotAcceptable(req, res)
     }
@@ -266,7 +273,14 @@ async function getThumbnail (req, res) {
     },
     'text/n3': async function () {
       res.set('Content-Type', 'text/n3')
-      res.status(201).render('get_thumbnail_response.n3.j2', {
+      res.status(200).render('get_thumbnail_response.n3.j2', {
+        image_id: fileName,
+        thumbnail_url: `${origin}${req.path}`
+      })
+    },
+    'application/ld+json': async function () {
+      res.set('Content-Type', 'application/ld+json')
+      res.status(200).render('get_thumbnail_response.jsonld.j2', {
         image_id: fileName,
         thumbnail_url: `${origin}${req.path}`
       })
