@@ -162,7 +162,12 @@ def request_from_graph(graph):
     return request
 
 
-def concatenate_eye_input_files(R, H, B=None):
+def concatenate_eye_input_files(H, g, R, B=None):
+    logger.log("DETAIL", f"{H=}")
+    logger.log("DETAIL", f"{g=}")
+    logger.log("DETAIL", f"{R=}")
+    logger.log("DETAIL", f"{B=}")
+
     input_files = []
     input_files += R
     input_files += H
@@ -576,14 +581,9 @@ def solve_api_composition_problem(
         f"Attempting to solve API composition problem, iteration {iteration}..."
     )
 
-    logger.debug(f"{H=}")
-    logger.debug(f"{g=}")
-    logger.debug(f"{R=}")
-    logger.debug(f"{B=}")
-
     workdir = "/mnt"
 
-    input_files = concatenate_eye_input_files(R, H, B=None)
+    input_files = concatenate_eye_input_files(H, g, R, B=None)
 
     if pre_proof == None:
         # (1) Generate the (initial) pre-proof
@@ -649,7 +649,7 @@ def solve_api_composition_problem(
         fp.write(agent_knowledge_updated)
 
     # (5b) Generate post-proof
-    input_files = concatenate_eye_input_files(R, [agent_knowledge])
+    input_files = concatenate_eye_input_files([agent_knowledge], g, R, B)
     status, post_proof = eye_generate_proof(
         ctx, input_files, g, f"{iteration:0>2}_post", workdir
     )
