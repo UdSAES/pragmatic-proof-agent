@@ -15,6 +15,7 @@ invoke = "*"
 loguru = "*"
 rdflib = "*"
 jinja2 = "*"
+rdflib-jsonld = "*"
 
 [requires]
 python_version = "3.8"
