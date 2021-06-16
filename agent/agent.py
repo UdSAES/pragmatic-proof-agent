@@ -120,7 +120,7 @@ def request_from_graph(graph):
             continue
 
         # TODO Prepare dictionary of headers to send
-        headers = {"accept": "text/n3"}
+        headers = {"accept": os.getenv("AGENT_MIME_ACCEPT")}
         if headers_rdfterm is not None:
             raise NotImplementedError
 
