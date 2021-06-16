@@ -4,6 +4,7 @@
 """Test for verifying key functions work as expected."""
 
 import os
+from http import HTTPStatus
 
 import pytest
 import requests
@@ -20,8 +21,26 @@ class TestImageResizeAPI(object):
     @pytest.mark.parametrize(
         "method, origin, path, multipart_field_name, accept, content_type, body, status_code",
         [
-            ("OPTIONS", origin, "/images", None, "text/n3", "text/n3", None, 200),
-            ("OPTIONS", origin, "/images/0", None, "text/n3", "text/n3", None, 200),
+            (
+                "OPTIONS",
+                origin,
+                "/images",
+                None,
+                "text/n3",
+                "text/n3",
+                None,
+                HTTPStatus.OK,
+            ),
+            (
+                "OPTIONS",
+                origin,
+                "/images/0",
+                None,
+                "text/n3",
+                "text/n3",
+                None,
+                HTTPStatus.OK,
+            ),
             (
                 "OPTIONS",
                 origin,
@@ -30,7 +49,7 @@ class TestImageResizeAPI(object):
                 "text/n3",
                 "text/n3",
                 None,
-                200,
+                HTTPStatus.OK,
             ),
             (
                 "POST",
@@ -40,7 +59,7 @@ class TestImageResizeAPI(object):
                 "text/n3",
                 "text/n3",
                 f"{test_data_base_path}/example.png",
-                201,
+                HTTPStatus.CREATED,
             ),
             (
                 "POST",
@@ -50,7 +69,7 @@ class TestImageResizeAPI(object):
                 "text/html",
                 "application/problem+json",
                 f"{test_data_base_path}/example.png",
-                406,
+                HTTPStatus.NOT_ACCEPTABLE,
             ),
             (
                 "GET",
@@ -60,7 +79,7 @@ class TestImageResizeAPI(object):
                 "image/png",
                 "image/png",
                 f"{test_data_base_path}/example.png",
-                200,
+                HTTPStatus.OK,
             ),
             (
                 "GET",
@@ -70,7 +89,7 @@ class TestImageResizeAPI(object):
                 "image/png",
                 "image/png",
                 None,
-                200,
+                HTTPStatus.OK,
             ),
             (
                 "GET",
@@ -80,7 +99,7 @@ class TestImageResizeAPI(object):
                 "image/png",
                 "application/problem+json",
                 None,
-                404,
+                HTTPStatus.NOT_FOUND,
             ),
             (
                 "GET",
@@ -90,7 +109,7 @@ class TestImageResizeAPI(object):
                 "image/png",
                 "application/problem+json",
                 None,
-                404,
+                HTTPStatus.NOT_FOUND,
             ),
         ],
     )
