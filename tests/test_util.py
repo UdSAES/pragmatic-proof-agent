@@ -13,7 +13,6 @@ import requests
 
 import agent
 
-
 test_data_base_path = os.path.normpath(
     os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "tests", "data")
 )
