@@ -111,7 +111,7 @@ async function n3addImage (req, res) {
   const origin = `${protocol}://${host}`
 
   const cfg = await readConfig()
-  const fileName = 'add_image_restdesc.n3'
+  const fileName = 'add_image_restdesc.n3.j2'
 
   const url = `${origin}${cfg.paths.collectionOfImages}`
 
@@ -204,7 +204,7 @@ async function addImage (req, res) {
     // },
     'text/n3': async function () {
       res.set('Content-Type', 'text/n3')
-      res.status(201).render('add_image_response.n3', {
+      res.status(201).render('add_image_response.n3.j2', {
         image_id: fileName,
         thumbnail_url: `${origin}${thumbnailPath}`
       })
@@ -266,7 +266,7 @@ async function getThumbnail (req, res) {
     },
     'text/n3': async function () {
       res.set('Content-Type', 'text/n3')
-      res.status(201).render('get_thumbnail_response.n3', {
+      res.status(201).render('get_thumbnail_response.n3.j2', {
         image_id: fileName,
         thumbnail_url: `${origin}${req.path}`
       })
