@@ -116,7 +116,7 @@ def request_from_graph(graph):
         url = urlparse(uri_rdfterm.n3().strip('<">'))
 
         if url.scheme == "" or url.netloc == "":
-            logger.debug(f"{url=} is incomplete, i.e. _not_ ground!")
+            logger.log("DETAIL", f"{url=} is incomplete, i.e. _not_ ground!")
             continue
 
         # TODO Prepare dictionary of headers to send
@@ -153,9 +153,10 @@ def request_from_graph(graph):
             method=method, url=url.geturl(), headers=headers, files=files
         )
 
-        logger.debug(
+        logger.log(
+            "DETAIL",
             f"Found ground request:\n{request.method} {request.url} "
-            f"with {request.headers=}, {request.files=}"
+            f"with {request.headers=}, {request.files=}",
         )
 
     # FIXME What happens if there are several ground requests??
@@ -321,6 +322,8 @@ def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"
 def find_rule_applications(ctx, proof, R, prefix):
     """Count how many times rules of R are applied in the proof."""
 
+    logger.info("Counting how many times rules of R are applied in the proof...")
+
     # Parse graph from n3-file
     graph = rdflib.Graph()
     graph.namespace_manager = NAMESPACE_MANAGER
@@ -332,7 +335,9 @@ def find_rule_applications(ctx, proof, R, prefix):
         # Identify triple resulting from loading the source file containing part of R
         file_name = file.split("/")[-1]
         file_uriref = rdflib.URIRef(f"file://{prefix}/{file_name}")
-        logger.debug(f"Finding applications of rules stated in '{file_name}'...")
+        logger.log(
+            "DETAIL", f"Finding applications of rules stated in '{file_name}'..."
+        )
 
         # Count number of triples that match SPARQL query
         a0 = graph.query(
@@ -378,7 +383,9 @@ def identify_http_requests(ctx, proof, R, prefix):
         # Construct identifier for which to search
         file_name = file.split("/")[-1]
         file_uriref = rdflib.URIRef(f"file://{prefix}/{file_name}")
-        logger.debug(f"Finding applications of rules stated in '{file_name}'...")
+        logger.log(
+            "DETAIL", f"Finding applications of rules stated in '{file_name}'..."
+        )
 
         # Find HTTP requests that are part of the application of a rule ∈ R
         a0 = graph.query(
@@ -443,7 +450,10 @@ def parse_http_body(node, r):
     if len(content_type_parts) == 2:
         content_type_parameter = content_type_parts[1]
 
-    logger.debug(f"The MIME type for the HTTP message is '{content_type}'")
+    message_type = "response" if isinstance(r, requests.Response) else "request"
+    logger.log(
+        "DETAIL", f"The MIME type for the HTTP {message_type} is '{content_type}'"
+    )
 
     # Determine whether or not the message body is binary file
     if (content_type_type in ["audio", "image", "video"]) or (
@@ -509,7 +519,7 @@ def parse_http_body(node, r):
 def parse_http_response(response):
     """Extract all triples from HTTP response object."""
 
-    logger.info("Extracting new information from HTTP response...")
+    logger.info("Extracting new information from HTTP request/response...")
 
     # Prepare for parsing
     request = response.request
@@ -599,11 +609,11 @@ def solve_api_composition_problem(
 
         # (1b) How many times are rules of R applied (i.e. how many API operations)?
         n_pre = find_rule_applications(ctx, pre_proof, R, workdir)
-        logger.debug(f"{n_pre=}")
+        logger.log("DETAIL", f"{n_pre=}")
 
     # (2) What does `n_pre` imply?
     if n_pre == 0:
-        logger.info(
+        logger.success(
             f"🎉 The pragmatic proof algorithm terminated successfully since {n_pre=}!"
         )
         return SUCCESS
@@ -664,7 +674,7 @@ def solve_api_composition_problem(
     else:
         n_post = find_rule_applications(ctx, post_proof, R, workdir)
 
-    logger.debug(f"{n_pre=}; {n_post=}")
+    logger.log("DETAIL", f"{n_pre=}; {n_post=}")
 
     # (7) What do the values of `n_pre` and `n_post` imply?
     iteration += 1
