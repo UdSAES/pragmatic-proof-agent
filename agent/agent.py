@@ -119,14 +119,27 @@ def request_from_graph(graph):
             continue
 
         # TODO Prepare dictionary of headers to send
-        headers = None
+        headers = {"accept": "text/n3"}
+        if headers_rdfterm is not None:
+            raise NotImplementedError
 
         # TODO Prepare body to send
         files = None
         if body_rdfterm is not None:
-            file_url = urlparse(body_rdfterm.n3().strip("<>"))
-            file_name = file_url.path.split("/")[-1]
-            file_path = file_url.path
+            # file_url = urlparse(body_rdfterm.n3().strip('<">'))
+            # file_name = file_url.path.split("/")[-1]
+            # file_path = file_url.path
+
+            file_name = "example.png"  # XXX SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
+            file_path = os.path.normpath(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    "..",
+                    "tests",
+                    "data",
+                    file_name,
+                )
+            )
 
             if os.path.exists(file_path):
                 # XXX Use of "image" as key is SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
