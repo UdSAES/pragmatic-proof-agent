@@ -457,6 +457,12 @@ def parse_http_body(node, r):
         or (content_type in ["application/n-triples", "application/n-quads"])
     ):
         content_is_binary = False
+    elif content_type == "multipart/form-data":
+        content_is_binary = True  # TODO assume binary content for now
+        logger.warning(
+            f"Parsing triples about 'multipart/form-data'-{message_type}s is not yet "
+            "implemented!"
+        )  # TODO
     else:
         content_is_binary = True
         logger.warning(
@@ -488,8 +494,6 @@ def parse_http_body(node, r):
 
             graph_n3 = r_body_graph.serialize(format="n3").decode("utf-8")
             logger.trace(f"Triples parsed from message body:\n{graph_n3}")
-        elif content_type == "multipart/form-data":
-            raise NotImplementedError  # TODO
         else:
             logger.warning(
                 f"Found unsupported non-binary content-type '{content_type}'; "
