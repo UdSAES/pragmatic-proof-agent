@@ -19,7 +19,7 @@ from rdflib.namespace import OWL, RDF, NamespaceManager
 # Configure logging
 log_level = os.getenv("AGENT_LOG_LEVEL", "INFO")
 logger.remove()
-logger.level("DETAIL", no=15, color="<blue><b>")  # separate level for HTTP-requests
+logger.level("DETAIL", no=15, color="<blue><b>")  # separate level for details
 logger.level("REQUEST", no=25, color="<cyan><b>")  # separate level for HTTP-requests
 logger.add(sys.stdout, level=log_level, diagnose=True, backtrace=False)
 
