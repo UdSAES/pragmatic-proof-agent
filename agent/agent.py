@@ -45,7 +45,7 @@ NAMESPACE_MANAGER.bind("rdf", RDF)
 NAMESPACE_MANAGER.bind("owl", OWL)
 NAMESPACE_MANAGER.bind("http", HTTP)
 NAMESPACE_MANAGER.bind("r", rdflib.Namespace("http://www.w3.org/2000/10/swap/reason#"))
-NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))
+NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))  # XXX
 
 
 # Utitily functions
@@ -674,7 +674,12 @@ def solve_api_composition_problem(
     }
 )
 def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
-    """Collect definition of API composition problem."""
+    """
+    Collect definition of specific API composition problem; then solve it.
+
+    This function is specific to the image-resizing example as it should be. The rest of
+    the code should be independent of any specific example, i.e. implement a generic (maybe even somewhat intelligent) agent!
+    """
 
     if clean_tmp == True:
         delete_all_files(ctx, directory)
