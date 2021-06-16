@@ -67,6 +67,7 @@ class TestUtitityFunctions(object):
                     requests.Request(
                         "POST",
                         f"{origin}/images",
+                        headers={"accept": "text/n3"},
                         files={
                             "image": (
                                 "example.png",
@@ -88,7 +89,8 @@ class TestUtitityFunctions(object):
 
         assert len(results) == len(expected)
 
-        for index, actual in enumerate(results):
+        for index, result in enumerate(results):
+            r, actual = result
             assert actual.method == expected[index].method
             assert actual.url == expected[index].url
             assert actual.headers == expected[index].headers
