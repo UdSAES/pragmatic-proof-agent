@@ -164,7 +164,8 @@ async function addImage (req, res) {
   let buffer
   const multipartFieldName = 'image' // FIXME Communicate via RESTdesc!!
   try {
-    fileName = req.files[multipartFieldName].name
+    // XXX the origin of the IRI gets lost when using IRIs as file name!!
+    fileName = 'https://ontologies.msaas.me/' + req.files[multipartFieldName].name
     buffer = req.files[multipartFieldName].data
   } catch (error) {
     await respondWithBadRequest(req, res)

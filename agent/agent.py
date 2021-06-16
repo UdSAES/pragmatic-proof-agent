@@ -131,14 +131,15 @@ def request_from_graph(graph):
             # file_name = file_url.path.split("/")[-1]
             # file_path = file_url.path
 
-            file_name = "example.png"  # XXX SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
+            # XXX SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
+            file_name = "https://ontologies.msaas.me/example.ttl#example.png"
             file_path = os.path.normpath(
                 os.path.join(
                     os.path.dirname(os.path.realpath(__file__)),
                     "..",
                     "tests",
                     "data",
-                    file_name,
+                    file_name.split("#")[-1],
                 )
             )
 
@@ -721,7 +722,10 @@ def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
     g = "agent_goal.n3"
 
     # Store initial state and the agent's goal as .n3 files on disk
-    image_rdfterm = rdflib.Literal("example.png")  # XXX is hardcoding a good idea? No!
+    # image_rdfterm = rdflib.Literal("example.png")  # XXX is hardcoding a good idea? No!
+    image_rdfterm = rdflib.URIRef(
+        "https://ontologies.msaas.me/example.ttl#example.png"
+    )  # XXX is hardcoding a good idea? No!
     for template, filename in [(initial_state, H), (goal_state, g)]:
         path = os.path.join(directory, filename)
         with open(path, "w") as fp:
