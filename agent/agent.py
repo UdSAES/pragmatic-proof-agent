@@ -109,7 +109,7 @@ def request_from_graph(graph):
         logger.trace(f"{method=}")
 
         if not (method in http_methods):
-            logger.warning(f"{method=} is not an HTTP method!")
+            logger.warning(f"{method=} is not a supported HTTP method!")
             continue
 
         # Check URI for completeness/distinguish from blank nodes
@@ -120,38 +120,31 @@ def request_from_graph(graph):
             continue
 
         # TODO Prepare dictionary of headers to send
-        headers = {"accept": os.getenv("AGENT_MIME_ACCEPT")}
+        headers = None
         if headers_rdfterm is not None:
             raise NotImplementedError
 
         # TODO Prepare body to send
-        files = None
+        body = None
         if body_rdfterm is not None:
-            # file_url = urlparse(body_rdfterm.n3().strip('<">'))
-            # file_name = file_url.path.split("/")[-1]
-            # file_path = file_url.path
+            raise NotImplementedError
 
-            # XXX SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
-            file_name = "https://ontologies.msaas.me/example.ttl#example.png"
-            file_path = os.path.normpath(
-                os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)),
-                    "..",
-                    "tests",
-                    "data",
-                    file_name.split("#")[-1],
-                )
-            )
+        # TODO Prepare other request parts
+        files = None
+        params = None
+        auth = None
+        cookies = None
 
-            if os.path.exists(file_path):
-                # XXX Use of "image" as key is SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!!
-                files = {"image": (file_name, open(file_path, "rb"))}
-            else:
-                logger.warning(f"File '{file_path}' does't exist, is the path correct?")
-
-        # Create https://2.python-requests.org/en/master/api/#requests.Request-instance
+        # Instantiate https://docs.python-requests.org/en/latest/api/#requests.Request
         request = requests.Request(
-            method=method, url=url.geturl(), headers=headers, files=files
+            method=method,
+            url=url.geturl(),
+            headers=headers,
+            files=files,
+            data=body,
+            params=params,
+            auth=auth,
+            cookies=cookies,
         )
 
         logger.log(
@@ -160,7 +153,6 @@ def request_from_graph(graph):
             f"with {request.headers=}, {request.files=}",
         )
 
-    # FIXME What happens if there are several ground requests??
     return request
 
 
