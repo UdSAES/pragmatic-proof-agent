@@ -2,6 +2,9 @@
 node_modules/
 local/
 tmp/
+.vscode/
+.pytest_cache/
+__pycache__
 
 # Ignore specific files
 .env
