@@ -56,7 +56,7 @@ class TestUtitityFunctions(object):
 
     def test_request_from_graph(self, rdf2http):
         graph = rdflib.Graph()
-        graph.parse(data=rdf2http["graph"], format="application/trig")
+        graph.parse(data=rdf2http["graph"], format="text/turtle")
 
         actual = agent.request_from_graph(graph)
 
