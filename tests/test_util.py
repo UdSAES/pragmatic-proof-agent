@@ -4,8 +4,6 @@
 """Unit tests for utitily functions."""
 
 import os
-import re
-import urllib
 
 import invoke
 import pytest

@@ -53,7 +53,7 @@ NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))  # X
 def delete_all_files(ctx, directory):
     """Delete all files in `directory`."""
 
-    logger.info("Removing all files in $AGENT_TMP...")
+    logger.info(f"Removing all files in {directory}...")
 
     for file in os.scandir(directory):
         logger.debug(f"Removing file {file.path}...")
