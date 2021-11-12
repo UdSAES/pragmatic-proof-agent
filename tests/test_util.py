@@ -9,6 +9,7 @@ import urllib
 
 import invoke
 import pytest
+import rdflib
 import requests
 
 import agent
@@ -52,6 +53,21 @@ class TestUtitityFunctions(object):
         actual = agent.correct_n3_syntax(input)
 
         assert actual == expected
+
+    def test_request_from_graph(self, rdf2http):
+        graph = rdflib.Graph()
+        graph.parse(data=rdf2http["graph"], format="application/trig")
+
+        actual = agent.request_from_graph(graph)
+
+        assert actual.url == rdf2http["expected"]["url"]
+        assert actual.method == rdf2http["expected"]["method"]
+        assert actual.params == rdf2http["expected"]["params"]
+        assert actual.headers == rdf2http["expected"]["headers"]
+        if rdf2http["expected"]["body"] != None:
+            assert actual.body == rdf2http["expected"]["body"]
+        if rdf2http["expected"]["files"] != None:
+            assert actual.files == rdf2http["expected"]["files"]
 
     @pytest.mark.parametrize(
         "proof, R, prefix, expected",

@@ -1,0 +1,18 @@
+---
+rdf2http:
+  - graph: |2
+      {{ prefixes}}
+
+      {
+        ex:request a http:Request ;
+            http:methodName "GET" ;
+            http:requestURI <http://example.org> ;
+      }
+    expected:
+      method: "GET"
+      url: "http://example.org"
+      params: {}
+      headers:
+        accept: "text/html"
+      body: null
+      files: null

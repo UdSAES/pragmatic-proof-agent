@@ -16,6 +16,8 @@ loguru = "*"
 rdflib = "*"
 jinja2 = "*"
 rdflib-jsonld = "*"
+python-dotenv = "*"
+pyyaml = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
