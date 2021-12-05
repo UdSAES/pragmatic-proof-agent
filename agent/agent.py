@@ -119,10 +119,29 @@ def request_from_graph(graph):
             logger.log("DETAIL", f"{url=} is incomplete, i.e. _not_ ground!")
             continue
 
-        # TODO Prepare dictionary of headers to send
+        # Prepare dictionary of headers to send
         headers = None
         if headers_rdfterm is not None:
-            raise NotImplementedError
+            headers = {}
+            a1 = graph.query(
+                (
+                    "SELECT ?fieldName ?fieldValue "
+                    "WHERE { "
+                    f"?r http:headers {headers_rdfterm.n3()} ."
+                    f"{headers_rdfterm.n3()} http:fieldName ?fieldName ."
+                    f"{headers_rdfterm.n3()} http:fieldValue ?fieldValue ."
+                    "}"
+                )
+            )
+            for k, v in a1:
+                key = k.n3().strip("\"'").lower()
+                value = v.n3().strip("\"'")
+
+                if key == "accept":
+                    key = "content-type"
+                    value = value.split(",")[0].split(";")[0]  # disregards `q` entirely
+
+                headers[key] = value
 
         # TODO Prepare body to send
         body = None

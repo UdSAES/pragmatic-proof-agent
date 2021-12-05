@@ -13,3 +13,29 @@ rdf2http:
       headers: {}
       body: null
       files: null
+
+  - graph: |2
+      {{ prefixes}}
+
+      ex:request a http:Request ;
+        http:methodName "GET" ;
+        http:requestURI <http://example.org/> ;
+        http:headers [
+          rdf:type http:RequestHeader ;
+          http:fieldName "Accept" ;
+          http:fieldValue "text/html;q=0.9, */*;q=0.8"
+        ] ;
+        http:headers [
+          http:fieldName "location" ;
+          http:fieldValue "http://example.org/asdf"
+        ] .
+    expected:
+      method: "GET"
+      url: "http://example.org/"
+      params: {}
+      headers: {
+        "content-type": "text/html",
+        "location": "http://example.org/asdf",
+      }
+      body: null
+      files: null
