@@ -10,7 +10,13 @@ import sys
 from loguru import logger
 
 # Expose submodule functions on top level
-from .agent import FAILURE, SUCCESS, solve_api_composition_problem  # noqa
+from .agent import (  # noqa
+    FAILURE,
+    SUCCESS,
+    correct_n3_syntax,
+    request_from_graph,
+    solve_api_composition_problem,
+)
 
 # Configure logging
 log_level = os.getenv("AGENT_LOG_LEVEL", "INFO")
