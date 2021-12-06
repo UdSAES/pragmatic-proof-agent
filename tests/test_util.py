@@ -32,6 +32,10 @@ class TestUtitityFunctions(object):
                 "@prefix dbpedia-owl: <http://dbpedia.org/ontology/>.",
             ),
             (
+                "PREFIX : <http://localhost:4000/models/6157f34f-f629-484b-b873-f31be22269e1#>",
+                "@prefix : <http://localhost:4000/models/6157f34f-f629-484b-b873-f31be22269e1#>.",
+            ),
+            (
                 "PREFIX ex: <http://example.org/image#>",
                 "@prefix ex: <http://example.org/image#>.",
             ),

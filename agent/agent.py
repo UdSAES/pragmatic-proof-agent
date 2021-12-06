@@ -64,7 +64,8 @@ def correct_n3_syntax(input):
     """Fix N3 syntax variants not universally supported."""
 
     pattern = re.compile(
-        r"^(?P<prefix>PREFIX) (?P<abbrv>[\w-]+:) (?P<url><[\w:\/\.#]+>)$", re.MULTILINE
+        r"^(?P<prefix>PREFIX) (?P<abbrv>[\w-]*:) (?P<url><[\w\d:\/\.#-]+>)$",
+        re.MULTILINE,
     )
 
     output = pattern.sub(r"@prefix \g<abbrv> \g<url>.", input)
