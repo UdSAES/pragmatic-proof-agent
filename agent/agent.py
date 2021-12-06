@@ -518,7 +518,10 @@ def parse_http_body(node, r):
         (content_type_type in ["text"])
         or ("json" in content_type_subtype)
         or ("xml" in content_type_subtype)
-        or (content_type in ["application/n-triples", "application/n-quads"])
+        or (
+            content_type
+            in ["application/n-triples", "application/n-quads", "application/trig"]
+        )
     ):
         content_is_binary = False
     elif content_type == "multipart/form-data":
@@ -539,6 +542,7 @@ def parse_http_body(node, r):
             "application/n-triples",
             "application/n-quads",
             "application/rdf+xml",
+            "application/trig",
             "text/n3",
             "text/turtle",
             "text/html",
