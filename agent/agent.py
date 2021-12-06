@@ -191,6 +191,42 @@ def concatenate_eye_input_files(H, g, R, B=None):
     return input_files
 
 
+def split_restdesc(text, directory):
+    # Extract prefix declarations
+    prefixes_regex = re.compile(
+        r"^(?P<prefix>@prefix) (?P<abbrv>[\w-]*:) (?P<url><[\w\d:\/\.#-]+>) *\.$",
+        re.MULTILINE,
+    )
+
+    prefixes_all = ""
+    for p, c, l in prefixes_regex.findall(text):
+        prefixes_all += f"{p} {c} {l} .\n"
+
+    # Get iterable for all rules in input
+    rules_regex = re.compile(
+        r"(?P<rule>{[.\n\s_:?\w\";\/\[\]]*}\n*=>\n*{[.\n\s_:?\w\";\/\[\]]*\n*}\s*\.)"
+    )
+
+    # # TODO Also get corresponding comment
+    # r"^#\s+[\w\s]*#*$"
+
+    # Write each rule to disk in a separate file
+    filenames = []
+    rule_number = 0
+    for rule in rules_regex.findall(text):
+        filename = f"rule_{rule_number:0>2}.n3"
+        filepath = os.path.join(directory, filename)
+
+        logger.debug(f"Saving RESTdesc rule as '{filename}'...")
+        with open(filepath, "w") as fp:
+            fp.write(f"{prefixes_all}\n{rule}")
+
+        filenames.append(filename)
+        rule_number += 1
+
+    return filenames
+
+
 # Core functionality
 @task(
     help={
@@ -228,6 +264,7 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
             "/photos/_",
             "/photos/_/miniature",
         ],
+        "ms": ["/"],
     }  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
     content_type = "text/n3"
 
@@ -244,16 +281,20 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
         if restdesc == "" or r.status_code == 501:
             logger.warning(f"RESTdesc for path '{path}' is empty/does not exist")
         else:
-            filename = "_".join(path.replace("_", "x").split("/")[1:]) + ".n3"
-            logger.debug(f"{filename}\n{restdesc}")
+            if path == "/":
+                # Store each rule in a separate file so 'R without r' works better
+                filenames = split_restdesc(restdesc, directory)
+            else:
+                filename = "_".join(path.replace("_", "x").split("/")[1:]) + ".n3"
+                logger.debug(f"{filename}\n{restdesc}")
 
-            # Store on disk
-            path = os.path.join(directory, filename)
-            logger.trace(f"Writing RESTdesc to {path}...")
-            with open(path, "w") as fp:
-                fp.write(restdesc)
+                # Store on disk
+                path = os.path.join(directory, filename)
+                logger.trace(f"Writing RESTdesc to {path}...")
+                with open(path, "w") as fp:
+                    fp.write(restdesc)
 
-            filenames.append(filename)
+                filenames.append(filename)
 
     return filenames
 
