@@ -556,7 +556,7 @@ def parse_http_body(node, r):
                 triples.append((s, p, o))
                 triples.append((node, HTTP.body, s))
 
-            graph_n3 = r_body_graph.serialize(format="n3").decode("utf-8")
+            graph_n3 = r_body_graph.serialize(format="n3")
             logger.trace(f"Triples parsed from message body:\n{graph_n3}")
         else:
             logger.warning(
@@ -693,7 +693,7 @@ def solve_api_composition_problem(
         response_graph.add((s, p, o))
 
     # Write newly gained knowledge to disk
-    response_graph_serialized = response_graph.serialize(format="n3").decode("utf-8")
+    response_graph_serialized = response_graph.serialize(format="n3")
     logger.debug(f"New information parsed from response:\n{response_graph_serialized}")
 
     G = f"knowledge_gained_{iteration:0>2}.n3"
@@ -708,7 +708,7 @@ def solve_api_composition_problem(
     H_union_G.parse(os.path.join(directory, H[0]), format="n3")
     H_union_G.parse(os.path.join(directory, G), format="n3")
 
-    agent_knowledge_updated = H_union_G.serialize(format="n3").decode("utf-8")
+    agent_knowledge_updated = H_union_G.serialize(format="n3")
     logger.debug(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
 
     agent_knowledge = f"agent_knowledge_{iteration:0>2}_post.n3"
