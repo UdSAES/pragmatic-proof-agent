@@ -200,3 +200,65 @@ def get_thumbnail(ctx, origin, directory, clean_tmp=False):
 
     sys.exit(status)
 
+
+@task(
+    help={
+        "origin": "The root URL to the service instance",
+        "directory": "The directory in which to store the .n3-files",
+        "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
+    }
+)
+def simulate_model(ctx, origin, directory, clean_tmp=False):
+    """Collect definition of specific API composition problem; then solve it."""
+
+    # Environment to be used when rendering templates using Jinja2
+    ENV = Environment(
+        loader=FileSystemLoader("examples/simulation"),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+    if clean_tmp == True:
+        delete_all_files(directory)
+
+    # Specify _initial state H_
+    initial = ENV.get_template("initial_state.n3.jinja")
+    H = "facts_initial.n3"
+
+    # Define the _goal state g_, i.e. the agent's objective
+    goal = ENV.get_template("agent_goal.n3.jinja")
+    g = "goal.n3"
+
+    # Discover _description formulas R_ (RESTdesc descriptions)
+    selector = "ms"
+    R = download_restdesc(ctx, origin, selector, directory, False)
+
+    # Specify additional _background knowledge B_ [if applicable]
+    background = ENV.get_template("background_knowledge.n3.jinja")
+    B = "facts_additional.n3"
+
+    # Ensure that all relevant knowledge is stored in a file on disk
+    for template, filename in [(initial, H), (goal, g), (background, B)]:
+        path = os.path.join(directory, filename)
+        with open(path, "w") as fp:
+            fp.write(template.render())
+
+    # Solve API composition problem
+    status = solve_api_composition_problem(ctx, directory, [H], g, R, B)
+
+    # Properly set exit code
+    if status == SUCCESS:
+        logger.info("Done!")
+    else:
+        logger.error("Terminating with non-zero exit code...")
+
+    sys.exit(status)
+
+
+if __name__ == "__main__":
+
+    origin = os.getenv("API_ORIGIN")
+    directory = os.getenv("AGENT_TMP")
+    clean_tmp = True
+
+    simulate_model(Context(), origin, directory, clean_tmp)
