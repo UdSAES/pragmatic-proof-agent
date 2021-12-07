@@ -524,7 +524,7 @@ def solve_api_composition_problem(
 
     workdir = "/mnt"
 
-    input_files = concatenate_eye_input_files(H, g, R, B=None)
+    input_files = concatenate_eye_input_files(H, g, R, B)
 
     if pre_proof == None:
         # (1) Generate the (initial) pre-proof
