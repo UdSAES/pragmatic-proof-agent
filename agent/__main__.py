@@ -15,16 +15,8 @@ from jinja2 import Environment, FileSystemLoader
 
 from . import FAILURE, SUCCESS, logger, solve_api_composition_problem
 
-# Environment to be used when rendering templates using Jinja2
-ENV = Environment(
-    loader=FileSystemLoader(os.getenv("AGENT_TEMPLATES")),
-    trim_blocks=True,
-    lstrip_blocks=True,
-)
-
-
 # Utitily functions
-def delete_all_files(ctx, directory):
+def delete_all_files(directory):
     """Delete all files in `directory`."""
 
     logger.info(f"Removing all files in {directory}...")
@@ -73,22 +65,25 @@ def split_restdesc(text, directory):
 @task(
     help={
         "origin": "The root URL to the service instance",
+        "selector": "Identifier for which API to use ('en'/'de'/'fr'/'ms').",
         "directory": "The directory in which to store the .n3-files",
         "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
     }
 )
-def download_restdesc(ctx, origin, directory, clean_tmp=False):
-    """Download RESTdesc descriptions of service instance."""
+def download_restdesc(ctx, origin, selector, directory, clean_tmp=False):
+    """
+    Download RESTdesc descriptions of service instance.
+
+    SPECIFIC TO THE EXAMPLES; NOT UNIVERSALLY VALID!
+    """
 
     logger.info(f"Downloading RESTdesc descriptions from {origin}...")
 
     if clean_tmp == True:
-        delete_all_files(ctx, directory)
+        delete_all_files(directory)
 
-    logger.warning(f"Discovery of RESTdesc is hardcoded against known URI structure!")
-
-    language = os.getenv("IMG_API_LANG", "en")
-    logger.debug(f"Selected language '{language}'")
+    if selector in ["en", "de", "fr"]:
+        logger.warning(f"Discovery of RESTdesc hardcoded against known URI structure!")
 
     api_paths = {
         "en": [
@@ -107,12 +102,12 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
             "/photos/_/miniature",
         ],
         "ms": ["/"],
-    }  # XXX THIS IS SPECIFIC TO THE IMAGE-RESIZING EXAMPLE!!
+    }
     content_type = "text/n3"
 
     filenames = []
 
-    for path in api_paths[language]:
+    for path in api_paths[selector]:
         href = f"{origin}{path}"
         headers = {"accept": content_type}
 
@@ -143,14 +138,12 @@ def download_restdesc(ctx, origin, directory, clean_tmp=False):
 
 @task(
     help={
-        "initial_state": "The .n3 file describing the initial state H",
-        "goal": "The .n3 file describing the agent's goal g",
         "origin": "The root URL to the service instance",
         "directory": "The directory in which to store the .n3-files",
         "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
     }
 )
-def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
+def get_thumbnail(ctx, origin, directory, clean_tmp=False):
     """
     Collect definition of specific API composition problem; then solve it.
 
@@ -159,15 +152,22 @@ def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
     (maybe even somewhat intelligent) agent!
     """
 
+    # Environment to be used when rendering templates using Jinja2
+    ENV = Environment(
+        loader=FileSystemLoader("examples/image_resizing"),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
     if clean_tmp == True:
-        delete_all_files(ctx, directory)
+        delete_all_files(directory)
 
     # Specify _initial state H_
-    initial_state = ENV.get_template(os.getenv("AGENT_INITIAL_STATE"))
+    initial_state = ENV.get_template("initial_state.n3.jinja")
     H = "agent_knowledge.n3"
 
     # Define the _goal state g_, i.e. the agent's objective
-    goal_state = ENV.get_template(os.getenv("AGENT_GOAL"))
+    goal_state = ENV.get_template("agent_goal.n3.jinja")
     g = "agent_goal.n3"
 
     # Store initial state and the agent's goal as .n3 files on disk
@@ -181,7 +181,10 @@ def get_thumbnail(ctx, initial_state, goal, origin, directory, clean_tmp=False):
             fp.write(template.render(image=image_rdfterm.n3()))
 
     # Discover _description formulas R_ (RESTdesc descriptions)
-    R = download_restdesc(ctx, origin, directory, False)
+    language = os.getenv("IMG_API_LANG", "en")
+    logger.debug(f"Selected language '{language}'")
+
+    R = download_restdesc(ctx, origin, language, directory, False)
 
     # Specify additional _background knowledge B_ [if applicable]
     B = None
