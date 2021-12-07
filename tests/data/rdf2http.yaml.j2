@@ -1,11 +1,11 @@
 ---
 rdf2http:
   - graph: |2
-      {{ prefixes}}
+      {{ prefixes }}
 
       ex:request a http:Request ;
-          http:methodName "GET" ;
-          http:requestURI <http://example.org/> .
+        http:methodName "GET" ;
+        http:requestURI <http://example.org/> .
     expected:
       method: "GET"
       url: "http://example.org/"
@@ -15,7 +15,7 @@ rdf2http:
       files: null
 
   - graph: |2
-      {{ prefixes}}
+      {{ prefixes }}
 
       ex:request a http:Request ;
         http:methodName "GET" ;
