@@ -7,6 +7,7 @@ verify_ssl = true
 isort = "*"
 ansible = "*"
 black = "==21.5b2"
+resolvelib = "*"
 
 [packages]
 requests = "*"
