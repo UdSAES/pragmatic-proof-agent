@@ -34,6 +34,18 @@ NAMESPACE_MANAGER.bind("http", HTTP)
 NAMESPACE_MANAGER.bind("r", rdflib.Namespace("http://www.w3.org/2000/10/swap/reason#"))
 NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))  # XXX
 
+# Compare https://rdflib.readthedocs.io/en/stable/plugin_parsers.html (both incomplete!)
+RDFLIB_SERIALIZATIONS = [
+    "application/ld+json",
+    "application/n-triples",
+    "application/n-quads",
+    "application/rdf+xml",
+    "application/trig",
+    "text/n3",
+    "text/turtle",
+    "text/html",
+]
+
 
 # Utitily functions
 def correct_n3_syntax(input):
@@ -406,16 +418,7 @@ def parse_http_body(node, r):
         )
 
     if not content_is_binary:
-        if content_type in [
-            "application/ld+json",
-            "application/n-triples",
-            "application/n-quads",
-            "application/rdf+xml",
-            "application/trig",
-            "text/n3",
-            "text/turtle",
-            "text/html",
-        ]:
+        if content_type in RDFLIB_SERIALIZATIONS:
             # Parse triples from non-binary message body
             if isinstance(r, requests.Response):
                 data = r.text
