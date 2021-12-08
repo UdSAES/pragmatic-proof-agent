@@ -424,16 +424,17 @@ def parse_http_body(node, r):
                 data = r.text
             else:
                 data = r.body
-            r_body_graph = rdflib.Graph()
-            r_body_graph.namespace_manager = NAMESPACE_MANAGER
-            r_body_graph.parse(data=data, format=content_type)
+            r_body_ds = rdflib.Dataset()
+            r_body_ds.namespace_manager = NAMESPACE_MANAGER
+            r_body_ds.parse(data=data, format=content_type, publicID=r.url)
 
-            for s, p, o in r_body_graph:
-                triples.append((s, p, o))
-                triples.append((node, HTTP.body, s))
+            for graph in r_body_ds.graphs():
+                for s, p, o in graph:
+                    triples.append((s, p, o))
+                    triples.append((node, HTTP.body, s))
 
-            graph_n3 = r_body_graph.serialize(format="n3")
-            logger.trace(f"Triples parsed from message body:\n{graph_n3}")
+            r_body_serialized = r_body_ds.serialize(format="application/trig")
+            logger.trace(f"Triples parsed from message body:\n{r_body_serialized}")
         else:
             logger.warning(
                 f"Found unsupported non-binary content-type '{content_type}'; "
