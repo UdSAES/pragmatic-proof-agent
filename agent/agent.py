@@ -110,6 +110,7 @@ def request_from_graph(graph):
 
         # Prepare dictionary of headers to send
         headers = None
+        serialization_desired = None
         if headers_rdfterm is not None:
             headers = {}
             a1 = graph.query(
@@ -129,13 +130,53 @@ def request_from_graph(graph):
                 if key == "accept":
                     key = "content-type"
                     value = value.split(",")[0].split(";")[0]  # disregards `q` entirely
+                    serialization_desired = value
 
                 headers[key] = value
 
-        # TODO Prepare body to send
+        # Prepare body to send
         body = None
         if body_rdfterm is not None:
-            raise NotImplementedError
+            non_parseable = False
+            body_url = urlparse(body_rdfterm.n3().strip("<>"))
+
+            if body_url.scheme == "file":
+                raw = rdflib.Graph()
+                filtered = rdflib.Graph()
+                try:
+                    raw.parse(body_url.path)
+
+                    if body_url.fragment != "":
+                        filtered = raw  # XXX only send relevant subgraph
+                    else:
+                        filtered = raw
+                except Exception:
+                    non_parseable = True
+
+                if non_parseable == False:
+                    media_type = (
+                        serialization_desired
+                        if (
+                            serialization_desired != None
+                            and serialization_desired in RDFLIB_SERIALIZATIONS
+                        )
+                        else "text/turtle"
+                    )
+                    body = filtered.serialize(format=media_type)
+
+                    if headers == None:
+                        headers = {}
+                    headers["content-type"] = media_type
+
+                    # Work around https://github.com/RDFLib/rdflib/issues/677
+                    body = body.replace(f"file://{body_url.path}", "")
+                else:
+                    # XXX verify whether or not this works as intended!
+                    with open(body_url.path) as fp:
+                        body = fp.read()
+                    headers["content-type"] = "application/octet-stream"
+            else:
+                raise NotImplementedError
 
         # TODO Prepare other request parts
         files = None
