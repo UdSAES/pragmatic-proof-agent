@@ -127,11 +127,6 @@ def request_from_graph(graph):
                 key = k.n3().strip("\"'").lower()
                 value = v.n3().strip("\"'")
 
-                if key == "accept":
-                    key = "content-type"
-                    value = value.split(",")[0].split(";")[0]  # disregards `q` entirely
-                    serialization_desired = value
-
                 headers[key] = value
 
         # Prepare body to send
