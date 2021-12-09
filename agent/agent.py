@@ -171,8 +171,7 @@ def request_from_graph(graph):
                     # Work around https://github.com/RDFLib/rdflib/issues/677
                     body = body.replace(f"file://{body_url.path}", "")
                 else:
-                    # XXX verify whether or not this works as intended!
-                    with open(body_url.path) as fp:
+                    with open(body_url.path, "rb") as fp:
                         body = fp.read()
                     headers["content-type"] = "application/octet-stream"
             else:
