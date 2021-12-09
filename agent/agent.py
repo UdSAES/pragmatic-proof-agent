@@ -148,6 +148,9 @@ def request_from_graph(graph):
                 except Exception:
                     non_parseable = True
 
+                if len(raw) == 0:
+                    non_parseable = True
+
                 if non_parseable == False:
                     media_type = (
                         serialization_desired
