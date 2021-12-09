@@ -39,7 +39,7 @@ def split_restdesc(text, directory):
 
     # Get iterable for all rules in input
     rules_regex = re.compile(
-        r"(?P<rule>{[.\n\s_:?\w\";\/\[\]]*}\n*=>\n*{[.\n\s_:?\w\";\/\[\]]*\n*}\s*\.)"
+        r"(?P<rule>{[.\n\s_:?\w\";\/\[\]]*}\n*=>\n*{[.\n\s_:?\w\";\/\[\]-]*\n*}\s*\.)"
     )
 
     # # TODO Also get corresponding comment
