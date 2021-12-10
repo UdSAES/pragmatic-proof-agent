@@ -24,6 +24,7 @@ FAILURE = 1  # implies that an algorithm failed to find a solution (_not_ an err
 # https://rdflib.readthedocs.io/en/latest/namespaces_and_bindings.html
 # --""--/apidocs/rdflib.html#rdflib.namespace.NamespaceManager
 HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
+SHACL = rdflib.Namespace("http://www.w3.org/ns/shacl#")
 
 NAMESPACE_MANAGER = NamespaceManager(rdflib.Graph())
 
@@ -32,6 +33,7 @@ NAMESPACE_MANAGER.bind("rdf", RDF)
 NAMESPACE_MANAGER.bind("owl", OWL)
 NAMESPACE_MANAGER.bind("http", HTTP)
 NAMESPACE_MANAGER.bind("r", rdflib.Namespace("http://www.w3.org/2000/10/swap/reason#"))
+NAMESPACE_MANAGER.bind("sh", SHACL)
 NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))  # XXX
 
 # Compare https://rdflib.readthedocs.io/en/stable/plugin_parsers.html (both incomplete!)
@@ -229,9 +231,82 @@ def identify_shapes_for_user_input(R, B, directory):
     pragmatic proof algorithm can derive an initial proof.
     """
 
-    logger.error("Identifying shapes and required user input...")
+    logger.info("Identifying shapes and required user input...")
 
     shapes_and_inputs = rdflib.Graph()
+    shapes_and_inputs.namespace_manager = NAMESPACE_MANAGER
+
+    # For each rule, assume that its implication can be realized (be optimistic!)
+    for rule in R:
+        logger.log("DETAIL", f"Searching shapes for user input in rule '{rule}'...")
+
+        # Load the facts specified as postcondition; i.e. assume the request succeeds
+        graph = rdflib.Graph()
+        graph.namespace_manager = NAMESPACE_MANAGER
+
+        with open(os.path.join(directory, rule)) as fp:
+            rule_text = fp.read()
+
+        # -> Extract prefix declarations
+        prefixes_regex = re.compile(
+            r"^(?P<prefix>@prefix) (?P<abbrv>[\w-]*:) (?P<url><[\w\d:\/\.#-]+>) *\.$",
+            re.MULTILINE,
+        )
+
+        prefixes_all = ""
+        for p, c, l in prefixes_regex.findall(rule_text):
+            prefixes_all += f"{p} {c} {l} .\n"
+
+        # -> Extract http-request and postcondition as `implication`
+        rule_regex = re.compile(
+            r"(?P<precondition>{[.\n\s_:?\w\";\/\[\]]*})\n*=>\n*"
+            + r"{(?P<implication>[.\n\s_:?\w\";\/\[\]-]*\n*)}\s*\."
+        )
+
+        implication = rule_regex.search(rule_text).group("implication")
+
+        # -> Parse postcondition; prefixes added to make document valid
+        graph.parse(data=f"{prefixes_all}\n{implication}", format="n3")
+
+        # Identify shapes and their target nodes via SPARQL query
+        a0 = graph.query(
+            (
+                "SELECT ?s ?p ?o "
+                "WHERE { "
+                "?s ?p ?o ."
+                "?s rdf:type sh:NodeShape ."
+                "?s sh:targetNode ?o ."
+                "}"
+            )
+        )
+
+        # Add assumptions that valid input will be supplied by user eventually
+        for s, p, o in a0:
+            # existentially qualified variables are parsed as blank nodes by rdflib;
+            # -> turn `s` into `rdflib.Variable` with unique but non-limited name
+            s = rdflib.Variable(s.toPython())
+
+            # `?s sh:targetNode ?o` implies that `?o` is a user input specified via `?s`
+            # => replace `?o` by URIRef to file which will eventually contain the data
+            o = rdflib.URIRef(f"file://{os.path.join(directory, o.toPython())}.n3")
+
+            shapes_and_inputs.add((s, p, o))
+            shapes_and_inputs.add((o, SHACL.shapesGraph, s))  # opposite direction
+
+    # Make assumptions available as part of the API composition problem
+    if B != None:
+        background_graph = rdflib.Graph()
+        background_graph.namespace_manager = NAMESPACE_MANAGER
+        background_graph.parse(os.path.join(directory, B), format="n3")
+        background_graph.parse(
+            data=shapes_and_inputs.serialize(format="n3"), format="n3"
+        )
+
+        background_graph.serialize(os.path.join(directory, B), format="n3")
+
+    else:
+        raise NotImplementedError  # TODO users don't always specify B -> deal with it
+
     return shapes_and_inputs
 
 
