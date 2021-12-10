@@ -320,13 +320,107 @@ def identify_shapes_for_user_input(R, B, directory):
     return shapes_and_inputs
 
 
-def update_shapes_and_input(graph, new):
+def update_shapes_and_input(shapes_and_inputs, knowledge_gained, rule_iri):
     """Replace variables in the shapes/inputs-graph with content provided by API."""
 
-    logger.error("Updating graph that tracks shapes, assumptions and user input...")
+    logger.info("Updating graph that tracks shapes, assumptions and user input...")
 
-    new = graph
-    return new
+    def choose_term_over_variable(x1, x2):
+        """Return the more specific of the two rdflib-terms."""
+
+        if (isinstance(x1, rdflib.Variable) or isinstance(x1, rdflib.BNode)) and (
+            (isinstance(x2, rdflib.URIRef)) or isinstance(x2, rdflib.Literal)
+        ):
+            return x2, x1
+
+        if (isinstance(x2, rdflib.Variable) or isinstance(x2, rdflib.BNode)) and (
+            (isinstance(x1, rdflib.URIRef)) or isinstance(x1, rdflib.Literal)
+        ):
+            return x1, x2
+
+        if isinstance(x1, rdflib.URIRef) and isinstance(x2, rdflib.URIRef):
+            if x1 == x2:
+                return x1, x2
+            else:
+                logger.error(f"Cannot decide between {x1=} and {x2=}!")
+                raise NotImplementedError
+
+        logger.warning(f"Could not decide between {x1=} and {x2=}!")
+        return None, None
+
+    # Associate graph with SPARQL-query; provide container for values compared later
+    lookup_table = [
+        {
+            "graph": shapes_and_inputs,
+            "query": (
+                "SELECT ?shape ?p1 ?focusNode "
+                "WHERE { "
+                f"?x r:source {rule_iri.n3()} ."
+                "?x ?p0 ?shape ."
+                "?shape ?p1 ?focusNode ."
+                "}"
+            ),
+            "s": None,
+            "p": None,
+            "o": None,
+        },
+        {
+            "graph": knowledge_gained,
+            "query": (
+                "SELECT ?shape ?p1 ?focusNode "
+                "WHERE { "
+                "?shape rdf:type sh:NodeShape ."
+                "?shape sh:targetNode ?focusNode ."
+                "?shape ?p1 ?focusNode ."
+                "}"
+            ),
+            "s": None,
+            "p": None,
+            "o": None,
+        },
+    ]
+
+    # Extract subject, predicate, object from both graphs
+    for gq in lookup_table:
+        a0 = gq["graph"].query(gq["query"])
+
+        # XXX In case of several bindings, `s`, `p`, `o` get overwritten silently!
+        for s, p, o in a0:
+            gq["s"] = s
+            gq["p"] = p
+            gq["o"] = o
+
+    add = []
+    remove = []
+    for k in ["s", "p", "o"]:
+        if (lookup_table[0][k] != None) and (lookup_table[1][k] != None):
+            winner, looser = choose_term_over_variable(
+                lookup_table[0][k], lookup_table[1][k]
+            )
+            add.append(winner)
+            remove.append(looser)
+
+    # Trying to ensure that we're only left with the triples we want --- yikes...
+    if (len(add) > 0) and (len(remove) > 0) and (len(add) == len(remove)):
+        shapes_and_inputs.remove((remove[0], remove[1], remove[2]))
+        shapes_and_inputs.remove((remove[0], remove[1], add[2]))
+        shapes_and_inputs.remove((remove[0], add[1], remove[2]))
+        shapes_and_inputs.remove((remove[0], add[1], add[2]))
+        shapes_and_inputs.remove((add[0], remove[1], remove[2]))
+        shapes_and_inputs.remove((add[0], remove[1], add[2]))
+        shapes_and_inputs.remove((add[0], add[1], remove[2]))
+        knowledge_gained.remove((remove[0], remove[1], remove[2]))
+        knowledge_gained.remove((remove[0], remove[1], add[2]))
+        knowledge_gained.remove((remove[0], add[1], remove[2]))
+        knowledge_gained.remove((remove[0], add[1], add[2]))
+        knowledge_gained.remove((add[0], remove[1], remove[2]))
+        knowledge_gained.remove((add[0], remove[1], add[2]))
+        knowledge_gained.remove((add[0], add[1], remove[2]))
+
+        shapes_and_inputs.add((add[0], add[1], add[2]))
+        knowledge_gained.add((add[0], add[1], add[2]))
+
+    return shapes_and_inputs, knowledge_gained
 
 
 def demand_user_input_is_ready(term):
@@ -745,6 +839,14 @@ def solve_api_composition_problem(
     H_union_G.parse(os.path.join(directory, H[0]), format="n3")
     H_union_G.parse(os.path.join(directory, G), format="n3")
 
+    # TODO Update map between shapes and required user input
+    shapes_and_inputs, H_union_G = update_shapes_and_input(
+        shapes_and_inputs,
+        H_union_G,
+        rdflib.URIRef(f"file://{os.path.join(directory, r)}"),
+    )
+
+    # Write updated knowledge (API response + shapes/input-map) to disk
     agent_knowledge_updated = H_union_G.serialize(format="n3")
     logger.debug(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
 
@@ -752,9 +854,6 @@ def solve_api_composition_problem(
 
     with open(os.path.join(directory, agent_knowledge), "w") as fp:
         fp.write(agent_knowledge_updated)
-
-    # TODO Update map between shapes and required user input
-    shapes_and_inputs = update_shapes_and_input(shapes_and_inputs, H_union_G)
 
     # (5b) Generate post-proof
     input_files = concatenate_eye_input_files([agent_knowledge], g, R, B)
