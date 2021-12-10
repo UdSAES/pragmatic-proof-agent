@@ -60,7 +60,7 @@ class TestUtitityFunctions(object):
         graph = rdflib.Graph()
         graph.parse(data=rdf2http["graph"], format="text/turtle")
 
-        actual = agent.request_from_graph(graph)
+        actual = agent.request_from_graph(graph, None)
 
         assert actual.url == rdf2http["expected"]["url"]
         assert actual.method == rdf2http["expected"]["method"]

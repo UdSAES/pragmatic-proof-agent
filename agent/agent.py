@@ -60,7 +60,7 @@ def correct_n3_syntax(input):
     return output
 
 
-def request_from_graph(graph):
+def request_from_graph(graph, shapes_and_inputs):
     """Extract parts of an HTTP request from a graph."""
 
     http_methods = [
@@ -138,6 +138,10 @@ def request_from_graph(graph):
             if body_url.scheme == "file":
                 raw = rdflib.Graph()
                 filtered = rdflib.Graph()
+
+                if (body_rdfterm, None, None) in shapes_and_inputs:
+                    demand_user_input_is_ready(body_rdfterm)
+
                 try:
                     raw.parse(body_url.path)
 
@@ -218,6 +222,34 @@ def concatenate_eye_input_files(H, g, R, B=None):
 
 
 # Core functionality
+def identify_shapes_for_user_input(R, B, directory):
+    """For each rule in R, identify required user input defined through shapes.
+
+    Also add assumptions stating that there will be conformant data graphs so that the
+    pragmatic proof algorithm can derive an initial proof.
+    """
+
+    logger.error("Identifying shapes and required user input...")
+
+    shapes_and_inputs = rdflib.Graph()
+    return shapes_and_inputs
+
+
+def update_shapes_and_input(graph, new):
+    """Replace variables in the shapes/inputs-graph with content provided by API."""
+
+    logger.error("Updating graph that tracks shapes, assumptions and user input...")
+
+    new = graph
+    return new
+
+
+def demand_user_input_is_ready(term):
+    """Have the user verify that the required inputs are ready for use."""
+
+    logger.error(f"Is the user input in {term.n3()} ready for upload?")
+
+
 # http://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
 @task(
     iterable=["input_files"],
@@ -339,7 +371,7 @@ def find_rule_applications(ctx, proof, R, prefix):
         "prefix": "The path of the directory in which the .n3-files are found within the container",
     },
 )
-def identify_http_requests(ctx, proof, R, prefix):
+def identify_http_requests(ctx, proof, R, prefix, shapes_and_inputs):
     """Extract HTTP requests in proof resulting from R."""
 
     logger.info("Extracting ground HTTP requests in proof resulting from R...")
@@ -393,7 +425,7 @@ def identify_http_requests(ctx, proof, R, prefix):
 
             # Extract method and request URI
             x.namespace_manager = NAMESPACE_MANAGER
-            req = request_from_graph(x)
+            req = request_from_graph(x, shapes_and_inputs)
 
             if req != None:
                 requests_ground.append((file, req))
@@ -556,7 +588,7 @@ def parse_http_response(response):
     },
 )
 def solve_api_composition_problem(
-    ctx, directory, H, g, R, B=None, pre_proof=None, n_pre=None, iteration=0
+    ctx, directory, H, g, R, B=None, pre_proof=None, n_pre=None, iteration=0, si=None
 ):
     """Recursively solve API composition problem."""
 
@@ -565,8 +597,11 @@ def solve_api_composition_problem(
     )
 
     workdir = "/mnt"
-
     input_files = concatenate_eye_input_files(H, g, R, B)
+    shapes_and_inputs = si
+
+    if iteration == 0:
+        shapes_and_inputs = identify_shapes_for_user_input(R, B, directory)
 
     if pre_proof == None:
         # (1) Generate the (initial) pre-proof
@@ -588,7 +623,9 @@ def solve_api_composition_problem(
         return SUCCESS
 
     # (3) Which HTTP requests are sufficiently specified? -> select one
-    ground_requests = identify_http_requests(ctx, pre_proof, R, workdir)
+    ground_requests = identify_http_requests(
+        ctx, pre_proof, R, workdir, shapes_and_inputs
+    )
     r, request_object = ground_requests[0]
 
     # (4) Execute HTTP request
@@ -631,6 +668,9 @@ def solve_api_composition_problem(
     with open(os.path.join(directory, agent_knowledge), "w") as fp:
         fp.write(agent_knowledge_updated)
 
+    # TODO Update map between shapes and required user input
+    shapes_and_inputs = update_shapes_and_input(shapes_and_inputs, H_union_G)
+
     # (5b) Generate post-proof
     input_files = concatenate_eye_input_files([agent_knowledge], g, R, B)
     status, post_proof = eye_generate_proof(
@@ -650,12 +690,21 @@ def solve_api_composition_problem(
     if n_post >= n_pre:
         R_difference_r = [x for x in R if not x == r]
         status = solve_api_composition_problem(
-            ctx, directory, H, g, R_difference_r, B, None, None, iteration
+            ctx,
+            directory,
+            H,
+            g,
+            R_difference_r,
+            B,
+            None,
+            None,
+            iteration,
+            shapes_and_inputs,
         )
         return status
     else:
         n_pre = n_post
         status = solve_api_composition_problem(
-            ctx, directory, H, g, R, B, post_proof, n_pre, iteration
+            ctx, directory, H, g, R, B, post_proof, n_pre, iteration, shapes_and_inputs
         )
         return status
