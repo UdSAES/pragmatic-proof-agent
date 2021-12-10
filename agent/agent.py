@@ -24,6 +24,7 @@ FAILURE = 1  # implies that an algorithm failed to find a solution (_not_ an err
 # https://rdflib.readthedocs.io/en/latest/namespaces_and_bindings.html
 # --""--/apidocs/rdflib.html#rdflib.namespace.NamespaceManager
 HTTP = rdflib.Namespace("http://www.w3.org/2011/http#")
+REASON = rdflib.Namespace("http://www.w3.org/2000/10/swap/reason#")
 SHACL = rdflib.Namespace("http://www.w3.org/ns/shacl#")
 
 NAMESPACE_MANAGER = NamespaceManager(rdflib.Graph())
@@ -32,7 +33,7 @@ NAMESPACE_MANAGER = NamespaceManager(rdflib.Graph())
 NAMESPACE_MANAGER.bind("rdf", RDF)
 NAMESPACE_MANAGER.bind("owl", OWL)
 NAMESPACE_MANAGER.bind("http", HTTP)
-NAMESPACE_MANAGER.bind("r", rdflib.Namespace("http://www.w3.org/2000/10/swap/reason#"))
+NAMESPACE_MANAGER.bind("r", REASON)
 NAMESPACE_MANAGER.bind("sh", SHACL)
 NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))  # XXX
 
@@ -141,7 +142,7 @@ def request_from_graph(graph, shapes_and_inputs):
                 raw = rdflib.Graph()
                 filtered = rdflib.Graph()
 
-                if (body_rdfterm, None, None) in shapes_and_inputs:
+                if (None, SHACL.targetNode, body_rdfterm) in shapes_and_inputs:
                     demand_user_input_is_ready(body_rdfterm)
 
                 try:
@@ -281,6 +282,15 @@ def identify_shapes_for_user_input(R, B, directory):
         )
 
         # Add assumptions that valid input will be supplied by user eventually
+        if len(a0) > 0:
+            node = rdflib.URIRef(f"#{rule.split('.')[0]}")
+            shapes_and_inputs.add(
+                (
+                    node,
+                    REASON.source,
+                    rdflib.URIRef(f"file://{os.path.join(directory, rule)}"),
+                )
+            )
         for s, p, o in a0:
             # existentially qualified variables are parsed as blank nodes by rdflib;
             # -> turn `s` into `rdflib.Variable` with unique but non-limited name
@@ -291,7 +301,7 @@ def identify_shapes_for_user_input(R, B, directory):
             o = rdflib.URIRef(f"file://{os.path.join(directory, o.toPython())}.n3")
 
             shapes_and_inputs.add((s, p, o))
-            shapes_and_inputs.add((o, SHACL.shapesGraph, s))  # opposite direction
+            shapes_and_inputs.add((node, RDF.predicate, s))
 
     # Make assumptions available as part of the API composition problem
     if B != None:
