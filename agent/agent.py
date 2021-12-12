@@ -319,7 +319,16 @@ def identify_shapes_for_user_input(R, B, directory):
             data=shapes_and_inputs.serialize(format="n3"), format="n3"
         )
 
-        background_graph.serialize(os.path.join(directory, B), format="n3")
+        # Work around https://github.com/RDFLib/rdflib/issues/677
+        prefix_unwanted = (
+            f"file://{os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))}/"
+        )
+
+        background_graph_text = background_graph.serialize(format="n3").replace(
+            prefix_unwanted, ""
+        )
+        with open(os.path.join(directory, B), "w") as fp:
+            fp.write(background_graph_text)
 
     else:
         raise NotImplementedError  # TODO users don't always specify B -> deal with it
