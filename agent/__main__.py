@@ -223,11 +223,11 @@ def simulate_model(ctx, origin, directory, clean_tmp=False):
 
     # Specify _initial state H_
     initial = ENV.get_template("initial_state.n3.jinja")
-    H = "facts_initial.n3"
+    H = "00_init_facts.n3"
 
     # Define the _goal state g_, i.e. the agent's objective
     goal = ENV.get_template("agent_goal.n3.jinja")
-    g = "goal.n3"
+    g = "00_init_goal.n3"
 
     # Discover _description formulas R_ (RESTdesc descriptions)
     selector = "ms"
@@ -245,7 +245,7 @@ def simulate_model(ctx, origin, directory, clean_tmp=False):
     # Specify additional _background knowledge B_ [if applicable]
     background = ENV.get_template("background_knowledge.n3.jinja")
     parameter_sets = [os.path.join(directory, x[1] + "#parameters") for x in U]
-    B = "facts_additional.n3"
+    B = "00_init_knowledge.n3"
 
     # Ensure that all relevant knowledge is stored in a file on disk
     for template, filename, data in [

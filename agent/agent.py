@@ -440,7 +440,7 @@ def demand_user_input_is_ready(term):
         "workdir": "The directory inside the container at which files are mounted",
     },
 )
-def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"):
+def eye_generate_proof(ctx, input_files, agent_goal, prefix=None, workdir="/mnt"):
     """Generate proof using containerized EYE reasoner."""
 
     logger.info("Generating proof using EYE...")
@@ -448,7 +448,7 @@ def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"
     # Assemble command
     dir_n3 = os.getenv("AGENT_TMP")
     image_name = os.getenv("EYE_IMAGE_NAME")
-    prefix = (
+    cmd_engine = (
         "docker run "
         "-i "
         "--rm "
@@ -462,7 +462,7 @@ def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"
     filenames = " ".join(input_files)
     cmd_container = f"{options} {filenames} --query {agent_goal}"
 
-    cmd = prefix + cmd_container
+    cmd = cmd_engine + cmd_container
     logger.debug(cmd)
 
     # Generate proof
@@ -487,7 +487,7 @@ def eye_generate_proof(ctx, input_files, agent_goal, suffix=None, workdir="/mnt"
         status = FAILURE
 
     # Store the proof as a file on disk
-    proof = "proof.n3" if suffix is None else f"proof_{suffix}.n3"
+    proof = "proof.n3" if prefix is None else f"{prefix}_proof.n3"
     path = os.path.join(dir_n3, proof)
     with open(path, "w") as fp:
         fp.write(content)
@@ -827,7 +827,7 @@ def solve_api_composition_problem(
     response_graph_serialized = response_graph.serialize(format="n3")
     logger.debug(f"New information parsed from response:\n{response_graph_serialized}")
 
-    G = f"knowledge_gained_{iteration:0>2}.n3"
+    G = f"{iteration:0>2}_sub_api_response.n3"
 
     with open(os.path.join(directory, G), "w") as fp:
         fp.write(response_graph_serialized)
@@ -850,7 +850,7 @@ def solve_api_composition_problem(
     agent_knowledge_updated = H_union_G.serialize(format="n3")
     logger.debug(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
 
-    agent_knowledge = f"agent_knowledge_{iteration:0>2}_post.n3"
+    agent_knowledge = f"{iteration:0>2}_sub_facts.n3"
 
     with open(os.path.join(directory, agent_knowledge), "w") as fp:
         fp.write(agent_knowledge_updated)
@@ -858,7 +858,7 @@ def solve_api_composition_problem(
     # (5b) Generate post-proof
     input_files = concatenate_eye_input_files([agent_knowledge], g, R, B)
     status, post_proof = eye_generate_proof(
-        ctx, input_files, g, f"{iteration:0>2}_post", workdir
+        ctx, input_files, g, f"{iteration:0>2}_sub", workdir
     )
 
     # (6) What is the value of `n_post`?
