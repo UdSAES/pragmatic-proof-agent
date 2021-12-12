@@ -443,7 +443,33 @@ def update_shapes_and_input(shapes_and_inputs, knowledge_gained, rule_iri):
 def demand_user_input_is_ready(term):
     """Have the user verify that the required inputs are ready for use."""
 
-    logger.error(f"Is the user input in {term.n3()} ready for upload?")
+    logger.error(f"Is the user input in {term.n3()} ready for upload? -> YES")
+
+    # ↓↓↓ SPECIFIC TO SIMaaS-EXAMPLE! TO BE DELETED HERE ###############################
+    from jinja2 import Environment, FileSystemLoader
+
+    # Environment to be used when rendering templates using Jinja2
+    ENV = Environment(
+        loader=FileSystemLoader("examples/simulation"),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+    # Make user input available in working directory
+    filepath = term.toPython()[7:]  # get rid of `file://`-prefix via slicing
+    U = [
+        (
+            ENV.get_template("parameters_01.n3.jinja"),
+            {"filepath": filepath},
+        )
+    ]
+
+    for template, data in U:
+        with open(filepath, "w") as fp:
+            fp.write(template.render(data))
+
+    # ↑↑↑ SPECIFIC TO SIMaaS-EXAMPLE! TO BE DELETED HERE ###############################
+
 
 
 # http://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values

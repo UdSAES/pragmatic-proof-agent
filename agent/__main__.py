@@ -234,26 +234,16 @@ def simulate_model(ctx, origin, directory, clean_tmp=False):
     selector = "ms"
     R = download_restdesc(ctx, origin, selector, directory, False)
 
-    # Make user input available in working directory
-    U = [
-        (
-            ENV.get_template("parameters_01.n3.jinja"),
-            "parameters_01.n3",
-            {"filepath": os.path.join(directory, "parameters_01.n3")},
-        )
-    ]
-
     # Specify additional _background knowledge B_ [if applicable]
     background = ENV.get_template("background_knowledge.n3.jinja")
-    parameter_sets = [os.path.join(directory, x[1] + "#parameters") for x in U]
     B = "00_init_knowledge.n3"
 
     # Ensure that all relevant knowledge is stored in a file on disk
     for template, filename, data in [
         (initial, H, {}),
         (goal, g, {}),
-        (background, B, {"parameter_sets": parameter_sets}),
-    ] + U:
+        (background, B, {}),
+    ]:
         path = os.path.join(directory, filename)
         with open(path, "w") as fp:
             fp.write(template.render(data))
