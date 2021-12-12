@@ -15,6 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from . import FAILURE, SUCCESS, logger, solve_api_composition_problem
 
+
 # Utitily functions
 def delete_all_files(directory):
     """Delete all files in `directory`."""
@@ -194,9 +195,9 @@ def get_thumbnail(ctx, origin, directory, clean_tmp=False):
 
     # Properly set exit code
     if status == SUCCESS:
-        logger.info("Done!")
+        logger.info("Done! 😎")
     else:
-        logger.error("Terminating with non-zero exit code...")
+        logger.error("💥 Terminating with non-zero exit code... ")
 
     sys.exit(status)
 
@@ -262,9 +263,9 @@ def simulate_model(ctx, origin, directory, clean_tmp=False):
 
     # Properly set exit code
     if status == SUCCESS:
-        logger.info("Done!")
+        logger.info("Done! 😎")
     else:
-        logger.error("Terminating with non-zero exit code...")
+        logger.error("💥 Terminating with non-zero exit code...")
 
     sys.exit(status)
 

@@ -32,6 +32,7 @@ NAMESPACE_MANAGER = NamespaceManager(rdflib.Graph())
 # FIXME read prefixes/namespaces from files instead of hardcoding?
 NAMESPACE_MANAGER.bind("rdf", RDF)
 NAMESPACE_MANAGER.bind("owl", OWL)
+
 NAMESPACE_MANAGER.bind("http", HTTP)
 NAMESPACE_MANAGER.bind("r", REASON)
 NAMESPACE_MANAGER.bind("sh", SHACL)
@@ -97,7 +98,7 @@ def request_from_graph(graph, shapes_and_inputs):
         )
 
         # Extract method and verify it's valid
-        method = method_rdfterm.n3().strip('"')
+        method = method_rdfterm.n3().strip('"')  # XXX use .toPython() instead?
         logger.trace(f"{method=}")
 
         if not (method in http_methods):
@@ -125,7 +126,7 @@ def request_from_graph(graph, shapes_and_inputs):
                     f"{headers_rdfterm.n3()} http:fieldValue ?fieldValue ."
                     "}"
                 )
-            )
+            )  # TODO change query so headers for response get disregarded!
             for k, v in a1:
                 key = k.n3().strip("\"'").lower()
                 value = v.n3().strip("\"'")
@@ -579,7 +580,7 @@ def identify_http_requests(ctx, proof, R, prefix, shapes_and_inputs):
     # Iterate over all files comprising R
     for file in R:
         # Construct identifier for which to search
-        file_name = file.split("/")[-1]
+        file_name = file.split("/")[-1]  # XXX use os.path instead
         file_uriref = rdflib.URIRef(f"file://{prefix}/{file_name}")
         logger.debug(f"Finding applications of rules stated in '{file_name}'...")
 
@@ -625,7 +626,7 @@ def parse_http_body(node, r):
 
     triples = []
 
-    # Identify MIME type of the message body
+    # Identify media type of the message body
     try:
         content_type_parts = r.headers["content-type"].split(";")
     except KeyError:
@@ -848,7 +849,7 @@ def solve_api_composition_problem(
     with open(os.path.join(directory, G), "w") as fp:
         fp.write(response_graph_serialized)
 
-    # (5a) Update agent knowledge by creating union of sets H and G; write to disk
+    # (5a) Update agent knowledge by creating union of sets H and G
     # FIXME should this be a merge or the set operation G1 + G2??
     H_union_G = rdflib.Graph()
     H_union_G.namespace_manager = NAMESPACE_MANAGER
