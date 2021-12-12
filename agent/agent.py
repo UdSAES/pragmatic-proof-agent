@@ -108,7 +108,7 @@ def request_from_graph(graph, shapes_and_inputs):
         url = urlparse(uri_rdfterm.n3().strip('<">'))
 
         if url.scheme == "" or url.netloc == "":
-            logger.log("DETAIL", f"{url=} is incomplete, i.e. _not_ ground!")
+            logger.debug(f"{url=} is incomplete, i.e. _not_ ground!")
             continue
 
         # Prepare dictionary of headers to send
@@ -200,11 +200,15 @@ def request_from_graph(graph, shapes_and_inputs):
             cookies=cookies,
         )
 
-        logger.log(
-            "DETAIL",
-            f"Found ground request:\n{request.method} {request.url} "
-            f"with {request.headers=}, {request.files=}",
+        log_message = (
+            f"Found ground request:\n{request.method} {request.url}\n"
+            f"with {request.headers=}\n"
+            f"     {request.params=}"
         )
+        if body_rdfterm is not None:
+            log_message += f"\n     request.data=<file://{body_url.path}>"
+
+        logger.log("DETAIL", log_message)
 
     return request
 
@@ -298,10 +302,13 @@ def identify_shapes_for_user_input(R, B, directory):
 
             # `?s sh:targetNode ?o` implies that `?o` is a user input specified via `?s`
             # => replace `?o` by URIRef to file which will eventually contain the data
-            o = rdflib.URIRef(f"file://{os.path.join(directory, o.toPython())}.n3")
+            target_node = f"file://{os.path.join(directory, o.toPython())}.n3"
+            o = rdflib.URIRef(target_node)
 
             shapes_and_inputs.add((s, p, o))
             shapes_and_inputs.add((node, RDF.predicate, s))
+
+            logger.log("DETAIL", f"Identified target node <{target_node}>!")
 
     # Make assumptions available as part of the API composition problem
     if B != None:
@@ -472,8 +479,8 @@ def eye_generate_proof(ctx, input_files, agent_goal, prefix=None, workdir="/mnt"
     # Modify proof to ensure all parts of the stack understand the syntax
     content = correct_n3_syntax(result.stdout)
 
-    logger.debug(f"Reasoning logs:\n{result.stderr}")
-    logger.debug(f"Proof deduced by EYE:\n{content}")
+    logger.trace(f"Reasoning logs:\n{result.stderr}")
+    logger.trace(f"Proof deduced by EYE:\n{content}")
 
     # Was the reasoner able to generate a proof?
     graph = rdflib.Graph()
@@ -519,9 +526,7 @@ def find_rule_applications(ctx, proof, R, prefix):
         # Identify triple resulting from loading the source file containing part of R
         file_name = file.split("/")[-1]
         file_uriref = rdflib.URIRef(f"file://{prefix}/{file_name}")
-        logger.log(
-            "DETAIL", f"Finding applications of rules stated in '{file_name}'..."
-        )
+        logger.debug(f"Finding applications of rules stated in '{file_name}'...")
 
         # Count number of triples that match SPARQL query
         a0 = graph.query(
@@ -567,9 +572,7 @@ def identify_http_requests(ctx, proof, R, prefix, shapes_and_inputs):
         # Construct identifier for which to search
         file_name = file.split("/")[-1]
         file_uriref = rdflib.URIRef(f"file://{prefix}/{file_name}")
-        logger.log(
-            "DETAIL", f"Finding applications of rules stated in '{file_name}'..."
-        )
+        logger.debug(f"Finding applications of rules stated in '{file_name}'...")
 
         # Find HTTP requests that are part of the application of a rule ∈ R
         a0 = graph.query(
@@ -596,11 +599,7 @@ def identify_http_requests(ctx, proof, R, prefix, shapes_and_inputs):
                 )
             )
 
-            # Inspect individual triples (for debugging)
-            for s, p, o in x:
-                logger.trace(
-                    f"Triple in {x.n3()}:\n{s.n3()}\n--- {p.n3()}\n----- {o.n3()}"
-                )
+            logger.debug(f"{x.serialize(format='n3')}")
 
             # Extract method and request URI
             x.namespace_manager = NAMESPACE_MANAGER
@@ -636,7 +635,7 @@ def parse_http_body(node, r):
 
     message_type = "response" if isinstance(r, requests.Response) else "request"
     logger.log(
-        "DETAIL", f"The MIME type for the HTTP {message_type} is '{content_type}'"
+        "DETAIL", f"The media type for the HTTP {message_type} is '{content_type}'"
     )
 
     # Determine whether or not the message body is binary file
@@ -691,7 +690,7 @@ def parse_http_body(node, r):
             )
     else:
         # TODO Parse triples off of binary content?
-        logger.error("Parsing triples off of binary content not implemented yet!")
+        logger.warning("Parsing triples off of binary content not implemented yet!")
 
     return triples
 
@@ -799,6 +798,13 @@ def solve_api_composition_problem(
         logger.success(
             f"🎉 The pragmatic proof algorithm terminated successfully since {n_pre=}!"
         )
+
+        # Log result achieved
+        proof = rdflib.Graph()
+        proof.parse(pre_proof, format="n3")  # TODO filter out lemmata?
+
+        logger.info(f"Proof that the goal was met:\n{proof.serialize(format='n3')}")
+
         return SUCCESS
 
     # (3) Which HTTP requests are sufficiently specified? -> select one
@@ -808,6 +814,7 @@ def solve_api_composition_problem(
     r, request_object = ground_requests[0]
 
     # (4) Execute HTTP request
+    logger.info("Sending request to API instance and parsing response...")
     logger.log("REQUEST", f"{request_object.method} {request_object.url}")
 
     request_prepared = request_object.prepare()
@@ -825,7 +832,7 @@ def solve_api_composition_problem(
 
     # Write newly gained knowledge to disk
     response_graph_serialized = response_graph.serialize(format="n3")
-    logger.debug(f"New information parsed from response:\n{response_graph_serialized}")
+    logger.trace(f"New information parsed from response:\n{response_graph_serialized}")
 
     G = f"{iteration:0>2}_sub_api_response.n3"
 
@@ -848,7 +855,7 @@ def solve_api_composition_problem(
 
     # Write updated knowledge (API response + shapes/input-map) to disk
     agent_knowledge_updated = H_union_G.serialize(format="n3")
-    logger.debug(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
+    logger.trace(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
 
     agent_knowledge = f"{iteration:0>2}_sub_facts.n3"
 
