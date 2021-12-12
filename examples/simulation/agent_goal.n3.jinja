@@ -1,5 +1,37 @@
 @prefix sms: <https://ontologies.msaas.me/sms-ontology.ttl#> .
 
-{ ?modelInstance sms:instanceOf ?model . }
+
+# # Model instantiation only ###########################################################
+# # { ?model sms:instantiatedBy ?modelInstance . }
+# # =>
+# # { ?model sms:instantiatedBy ?modelInstance . } .
+
+# { ?modelInstance sms:instanceOf ?model . }
+# =>
+# { ?modelInstance sms:instanceOf ?model . } .
+
+
+# # Simulation of a model instance #####################################################
+# {
+#     ?simulation sms:simulates ?modelInstance .
+#     ?simulationResult sms:resultOf ?simulation .
+# }
+# =>
+# {
+#     ?simulation sms:simulates ?modelInstance .
+#     ?simulationResult sms:resultOf ?simulation .
+# } .
+
+
+# Full example: model -> simulation result #############################################
+{
+    ?modelInstance sms:instanceOf ?model .
+    ?simulation sms:simulates ?modelInstance .
+    ?simulationResult sms:resultOf ?simulation .
+}
 =>
-{ ?modelInstance sms:instanceOf ?model . } .
+{
+    ?modelInstance sms:instanceOf ?model .
+    ?simulation sms:simulates ?modelInstance .
+    ?simulationResult sms:resultOf ?simulation .
+} .

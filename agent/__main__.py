@@ -240,7 +240,7 @@ def simulate_model(ctx, origin, directory, clean_tmp=False):
 
     # Ensure that all relevant knowledge is stored in a file on disk
     for template, filename, data in [
-        (initial, H, {}),
+        (initial, H, {"filepath": os.path.abspath("examples/simulation/model.fmu")}),
         (goal, g, {}),
         (background, B, {}),
     ]:

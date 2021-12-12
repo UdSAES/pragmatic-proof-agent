@@ -144,7 +144,7 @@ def request_from_graph(graph, shapes_and_inputs):
                 filtered = rdflib.Graph()
 
                 if (None, SHACL.targetNode, body_rdfterm) in shapes_and_inputs:
-                    demand_user_input_is_ready(body_rdfterm)
+                    demand_user_input_is_ready(shapes_and_inputs, body_rdfterm)
 
                 try:
                     raw.parse(body_url.path)
@@ -440,7 +440,7 @@ def update_shapes_and_input(shapes_and_inputs, knowledge_gained, rule_iri):
     return shapes_and_inputs, knowledge_gained
 
 
-def demand_user_input_is_ready(term):
+def demand_user_input_is_ready(shapes_and_inputs, term):
     """Have the user verify that the required inputs are ready for use."""
 
     logger.error(f"Is the user input in {term.n3()} ready for upload? -> YES")
@@ -460,6 +460,10 @@ def demand_user_input_is_ready(term):
     U = [
         (
             ENV.get_template("parameters_01.n3.jinja"),
+            {"filepath": filepath},
+        )
+        (
+            ENV.get_template("simulation_01.n3.jinja"),
             {"filepath": filepath},
         )
     ]

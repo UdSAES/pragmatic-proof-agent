@@ -9,10 +9,3 @@
 @prefix fmi: <https://ontologies.msaas.me/fmi-ontology.ttl#> .
 @prefix sms: <https://ontologies.msaas.me/sms-ontology.ttl#> .
 
-
-# Assumptions ##########################################################################
-{% for set in parameter_sets %}
-<file://{{ set }}> sh:shapesGraph ?instantiationShape .
-{% endfor %}
-
-# Actual Background Knowledge ##########################################################
