@@ -337,7 +337,7 @@ def identify_shapes_for_user_input(R, B, directory):
     return shapes_and_inputs
 
 
-def update_shapes_and_input(shapes_and_inputs, knowledge_gained, rule_iri):
+def update_shapes_and_input(shapes_and_inputs, knowledge_gained, rule_iri, file_iri):
     """Replace variables in the shapes/inputs-graph with content provided by API."""
 
     logger.info("Updating graph that tracks shapes, assumptions and user input...")
@@ -435,7 +435,12 @@ def update_shapes_and_input(shapes_and_inputs, knowledge_gained, rule_iri):
         knowledge_gained.remove((add[0], add[1], remove[2]))
 
         shapes_and_inputs.add((add[0], add[1], add[2]))
+        shapes_and_inputs.add((add[0], REASON.source, file_iri))
         knowledge_gained.add((add[0], add[1], add[2]))
+
+        for s, p, o in shapes_and_inputs.triples((None, None, remove[0])):
+            shapes_and_inputs.remove((s, p, o))
+            shapes_and_inputs.add((s, p, add[0]))
 
     return shapes_and_inputs, knowledge_gained
 
@@ -887,20 +892,25 @@ def solve_api_composition_problem(
     H_union_G.parse(os.path.join(directory, G), format="n3")
 
     # TODO Update map between shapes and required user input
+    agent_knowledge = f"{iteration:0>2}_sub_facts.n3"  # name for `H_union_G` on disk
+
     shapes_and_inputs, H_union_G = update_shapes_and_input(
         shapes_and_inputs,
         H_union_G,
         rdflib.URIRef(f"file://{os.path.join(directory, r)}"),
+        rdflib.URIRef(f"file://{os.path.join(directory, agent_knowledge)}"),
     )
 
     # Write updated knowledge (API response + shapes/input-map) to disk
     agent_knowledge_updated = H_union_G.serialize(format="n3")
     logger.trace(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
 
-    agent_knowledge = f"{iteration:0>2}_sub_facts.n3"
-
     with open(os.path.join(directory, agent_knowledge), "w") as fp:
         fp.write(agent_knowledge_updated)
+
+    shapes_and_inputs.serialize(
+        os.path.join(directory, f"{iteration:0>2}_sub_shapes_inputs.n3"), format="n3"
+    )
 
     # (5b) Generate post-proof
     input_files = concatenate_eye_input_files([agent_knowledge], g, R, B)
