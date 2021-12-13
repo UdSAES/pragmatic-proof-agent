@@ -36,7 +36,6 @@ NAMESPACE_MANAGER.bind("owl", OWL)
 NAMESPACE_MANAGER.bind("http", HTTP)
 NAMESPACE_MANAGER.bind("r", REASON)
 NAMESPACE_MANAGER.bind("sh", SHACL)
-NAMESPACE_MANAGER.bind("ex", rdflib.Namespace("http://example.org/image#"))  # XXX
 
 # Compare https://rdflib.readthedocs.io/en/stable/plugin_parsers.html (both incomplete!)
 RDFLIB_SERIALIZATIONS = [

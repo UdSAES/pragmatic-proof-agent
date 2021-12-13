@@ -10,6 +10,10 @@
 {
   _:request http:methodName "GET";
             http:requestURI ?thumbnail;
+            http:headers [
+                http:fieldName "Accept" ;
+                http:fieldValue "text/n3"
+            ] ;
             http:resp [ http:body ?thumbnail ].
   ?image dbpedia-owl:thumbnail ?thumbnail.
   ?thumbnail a dbpedia:Image;

@@ -11,7 +11,7 @@ const bunyan = require('bunyan')
 const express = require('express')
 const { promisify } = require('util')
 const { processenv } = require('processenv')
-const fileUpload = require('express-fileupload')
+const bodyParser = require('body-parser')
 const execFile = promisify(require('child_process').execFile)
 const nunjucks = require('nunjucks')
 
@@ -160,13 +160,9 @@ async function addImage (req, res) {
   const baseDir = `${cfg.tmpDirectory}/images`
 
   // Create new identifier for image
-  let fileName
   let buffer
-  const multipartFieldName = 'image' // FIXME Communicate via RESTdesc!!
   try {
-    // XXX the origin of the IRI gets lost when using IRIs as file name!!
-    fileName = 'https://ontologies.msaas.me/' + req.files[multipartFieldName].name
-    buffer = req.files[multipartFieldName].data
+    buffer = req.body
   } catch (error) {
     await respondWithBadRequest(req, res)
     return
@@ -187,10 +183,10 @@ async function addImage (req, res) {
 
   // Update knowledge about resource state
   images[hash] = {
-    fileName: fileName,
+    fileName: hash,
     filePath: filePath
   }
-  log.debug(`Added image \`${fileName}\` to API-instance as \`/images/${hash}\``)
+  log.debug(`Added image \`${hash}\` to API-instance as \`/images/${hash}\``)
   log.trace({ images: images })
 
   // Acknowlegde successfull addition
@@ -200,14 +196,14 @@ async function addImage (req, res) {
     'text/n3': async function () {
       res.set('Content-Type', 'text/n3')
       res.status(201).render('add_image_response.n3.j2', {
-        image_id: fileName,
+        image_id: `${origin}${imagePath}`,
         thumbnail_url: `${origin}${thumbnailPath}`
       })
     },
     'application/ld+json': async function () {
       res.set('Content-Type', 'application/ld+json')
       res.status(201).render('add_image_response.jsonld.j2', {
-        image_id: fileName,
+        image_id: `${origin}${imagePath}`,
         thumbnail_url: `${origin}${thumbnailPath}`
       })
     },
@@ -262,6 +258,8 @@ async function getThumbnail (req, res) {
   await fs.ensureDir(baseDir)
   await resizeImage(filePath, thumbnail, 80)
 
+  const imagePath = _.replace(cfg.paths.specificImage, ':imageId', hash)
+
   res.format({
     'image/png': async function () {
       res.sendFile(thumbnail)
@@ -269,14 +267,14 @@ async function getThumbnail (req, res) {
     'text/n3': async function () {
       res.set('Content-Type', 'text/n3')
       res.status(200).render('get_thumbnail_response.n3.j2', {
-        image_id: fileName,
+        image_url: `${origin}${imagePath}`,
         thumbnail_url: `${origin}${req.path}`
       })
     },
     'application/ld+json': async function () {
       res.set('Content-Type', 'application/ld+json')
       res.status(200).render('get_thumbnail_response.jsonld.j2', {
-        image_id: fileName,
+        image_url: `${origin}${imagePath}`,
         thumbnail_url: `${origin}${req.path}`
       })
     },
@@ -338,7 +336,8 @@ async function init () {
 
   // Instantiate express-application and set up middleware-stack
   const app = express()
-  app.use(fileUpload())
+  app.use(bodyParser.json({ type: ['application/json', 'application/*+json'] }))
+  app.use(bodyParser.raw({ type: ['application/octet-stream'], limit: '50mb' }))
   nunjucks.configure('templates', { autoescape: true, express: app })
 
   // Log every request
