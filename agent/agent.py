@@ -683,10 +683,10 @@ def identify_http_requests(ctx, proof, R, prefix, shapes_and_inputs):
                 )
             )
 
+            x.namespace_manager = NAMESPACE_MANAGER
             logger.debug(f"{x.serialize(format='n3')}")
 
             # Extract method and request URI
-            x.namespace_manager = NAMESPACE_MANAGER
             req = request_from_graph(x, shapes_and_inputs)
 
             if req != None:
