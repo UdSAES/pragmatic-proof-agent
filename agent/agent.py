@@ -985,6 +985,15 @@ def solve_api_composition_problem(
     else:
         n_pre = n_post
         status = solve_api_composition_problem(
-            ctx, directory, H, g, R, B, post_proof, n_pre, iteration, shapes_and_inputs
+            ctx,
+            directory,
+            [agent_knowledge],
+            g,
+            R,
+            B,
+            post_proof,
+            n_pre,
+            iteration,
+            shapes_and_inputs,
         )
         return status
