@@ -178,6 +178,8 @@ def request_from_graph(graph, shapes_and_inputs):
                 else:
                     with open(body_url.path, "rb") as fp:
                         body = fp.read()
+                    if headers == None:
+                        headers = {}
                     headers["content-type"] = "application/octet-stream"
             else:
                 raise NotImplementedError
