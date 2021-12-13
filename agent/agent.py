@@ -186,6 +186,16 @@ def request_from_graph(graph, shapes_and_inputs):
         # TODO Prepare other request parts
         files = None
         params = None
+
+        # ↓↓↓ SPECIFIC TO SIMaaS-EXAMPLE! TO BE DELETED HERE ###########################
+        if method == "POST" and url.path == "/models":
+            params = {
+                "records": "irradianceTemperatureWindSpeed2Power.plantRecord"
+                + ",irradianceTemperatureWindSpeed2Power.location"
+            }
+
+        # ↑↑↑ SPECIFIC TO SIMaaS-EXAMPLE! TO BE DELETED HERE ###########################
+
         auth = None
         cookies = None
 
@@ -462,20 +472,35 @@ def demand_user_input_is_ready(shapes_and_inputs, term):
 
     # Make user input available in working directory
     filepath = term.toPython()[7:]  # get rid of `file://`-prefix via slicing
-    U = [
-        (
-            ENV.get_template("parameters_01.n3.jinja"),
-            {"filepath": filepath},
-        )
-        (
-            ENV.get_template("simulation_01.n3.jinja"),
-            {"filepath": filepath},
-        )
-    ]
 
-    for template, data in U:
+    subject = shapes_and_inputs.value(None, SHACL.targetNode, term)
+    stored_in = shapes_and_inputs.value(subject, REASON.source, None)
+
+    # Careful, things get quite ugly below.. adults only
+    logger.log(
+        "USER",
+        (
+            f"Shape for focus node `{term.n3()}`: `{subject.n3()}`; "
+            f"to be found in `{stored_in.n3()}`"
+        ),
+    )
+    logger.log(
+        "USER",
+        "Note that we simply _assume_ that the data graph conforms to the shape!",
+    )
+    if "shapes-instantiation" in subject.toPython():
+        x = [
+            (
+                ENV.get_template("parameters_01.n3.jinja"),
+                {"filepath": filepath},
+            )
+        ]
+
+    for template, data in x:
         with open(filepath, "w") as fp:
             fp.write(template.render(data))
+
+    logger.log("USER", f"User just updated file <{term.toPython()}>")
 
     # ↑↑↑ SPECIFIC TO SIMaaS-EXAMPLE! TO BE DELETED HERE ###############################
 
