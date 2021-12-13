@@ -22,7 +22,9 @@ from .agent import (  # noqa
 log_level = os.getenv("AGENT_LOG_LEVEL", "INFO")
 logger.remove()
 logger.level("DETAIL", no=15, color="<blue><b>")  # separate level for details
-logger.level("REQUEST", no=25, color="<cyan><b>")  # separate level for HTTP-requests
+logger.level(
+    "REQUEST", no=25, color="<fg #F063E9><b>"
+)  # separate level for HTTP-requests
 logger.level(
     "USER", no=25, color="<magenta><b>"
 )  # separate level for (fake) user input
