@@ -496,6 +496,17 @@ def demand_user_input_is_ready(shapes_and_inputs, term):
             )
         ]
 
+    if "shapes-simulation" in subject.toPython():
+        x = [
+            (
+                ENV.get_template("simulation_01.n3.jinja"),
+                {
+                    "settings_prefix": f"{subject.toPython().split('#')[0]}/settings#",
+                    "var_prefix": f"{'/'.join(subject.toPython().split('/')[0:-2])}/variables#",
+                },
+            )
+        ]
+
     for template, data in x:
         with open(filepath, "w") as fp:
             fp.write(template.render(data))
