@@ -515,6 +515,9 @@ def demand_user_input_is_ready(shapes_and_inputs, term):
 
     # ↑↑↑ SPECIFIC TO SIMaaS-EXAMPLE! TO BE DELETED HERE ###############################
 
+    # response = input(f"Is the user input in {term.n3()} ready for upload? y/n: ")
+    # ready = True if response.lower().startswith("y") else False
+    # logger.debug(f"{ready=}")
 
 
 # http://docs.pyinvoke.org/en/stable/concepts/invoking-tasks.html#iterable-flag-values
