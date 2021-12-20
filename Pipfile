@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 isort = "*"
 ansible = "*"
-black = "==21.5b2"
+black = "==21.12b0"
 resolvelib = "*"
 
 [packages]
@@ -17,8 +17,7 @@ loguru = "*"
 rdflib = "*"
 jinja2 = "*"
 rdflib-jsonld = "*"
-python-dotenv = "*"
 pyyaml = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
