@@ -3,7 +3,7 @@
 ---
 - hosts: localhost
   vars:
-    basedir: /home/moritz/work/projekte/phd_thesis/research/pragmatic_proofs
+    basedir: "{{ lookup('env', 'PLAYBOOK_BASEDIR') }}"
     rebuild_existing_images: true
 
     # EYE reasoner
