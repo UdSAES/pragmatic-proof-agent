@@ -139,7 +139,7 @@ class TestImageResizeAPI(object):
         if body is not None:
             with open(body, "rb") as fp:
                 data = fp.read()
-            
+
             headers["content-type"] = "application/octet-stream"
 
         # https://2.python-requests.org/en/master/api/#requests.request

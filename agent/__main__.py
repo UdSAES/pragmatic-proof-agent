@@ -28,7 +28,7 @@ def delete_all_files(directory):
 
 def split_restdesc(text, directory):
     """Store each RESTdesc rule in a separate file.
-    
+
     This facilitates handling in the pragmatic proof algorithm as omitting a rule from
     evaluation becomes trivial iff all rules are stored in a separate file.
     """
