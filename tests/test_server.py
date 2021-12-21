@@ -19,23 +19,12 @@ class TestImageResizeAPI(object):
     origin = os.getenv("API_ORIGIN", "")
 
     @pytest.mark.parametrize(
-        "method, origin, path, multipart_field_name, accept, content_type, body, status_code",
+        "method, origin, path, accept, content_type, body, status_code",
         [
             (
                 "OPTIONS",
                 origin,
                 "/images",
-                None,
-                "text/n3",
-                "text/n3",
-                None,
-                HTTPStatus.OK,
-            ),
-            (
-                "OPTIONS",
-                origin,
-                "/images/0",
-                None,
                 "text/n3",
                 "text/n3",
                 None,
@@ -45,7 +34,6 @@ class TestImageResizeAPI(object):
                 "OPTIONS",
                 origin,
                 "/images/0/thumbnail",
-                None,
                 "text/n3",
                 "text/n3",
                 None,
@@ -55,7 +43,6 @@ class TestImageResizeAPI(object):
                 "POST",
                 origin,
                 "/images",
-                "image",
                 "text/n3",
                 "text/n3",
                 f"{test_data_base_path}/example.png",
@@ -65,7 +52,6 @@ class TestImageResizeAPI(object):
                 "POST",
                 origin,
                 "/images",
-                "image",
                 "application/ld+json",
                 "application/ld+json",
                 f"{test_data_base_path}/example.png",
@@ -75,7 +61,6 @@ class TestImageResizeAPI(object):
                 "POST",
                 origin,
                 "/images",
-                "image",
                 "text/html",
                 "application/problem+json",
                 f"{test_data_base_path}/example.png",
@@ -85,7 +70,6 @@ class TestImageResizeAPI(object):
                 "GET",
                 origin,
                 "/images/90007eb1c2af27c8fbac3fc6db2f801a",
-                None,
                 "image/png",
                 "image/png",
                 f"{test_data_base_path}/example.png",
@@ -95,7 +79,6 @@ class TestImageResizeAPI(object):
                 "GET",
                 origin,
                 "/images/90007eb1c2af27c8fbac3fc6db2f801a/thumbnail",
-                None,
                 "image/png",
                 "image/png",
                 None,
@@ -105,7 +88,6 @@ class TestImageResizeAPI(object):
                 "GET",
                 origin,
                 "/images/90007eb1c2af27c8fbac3fc6db2f801a/thumbnail",
-                None,
                 "text/n3",
                 "text/n3",
                 None,
@@ -115,7 +97,6 @@ class TestImageResizeAPI(object):
                 "GET",
                 origin,
                 "/images/90007eb1c2af27c8fbac3fc6db2f801a/thumbnail",
-                None,
                 "application/ld+json",
                 "application/ld+json",
                 None,
@@ -125,7 +106,6 @@ class TestImageResizeAPI(object):
                 "GET",
                 origin,
                 "/images/_",
-                None,
                 "image/png",
                 "application/problem+json",
                 None,
@@ -135,7 +115,6 @@ class TestImageResizeAPI(object):
                 "GET",
                 origin,
                 "/images/_/thumbnail",
-                None,
                 "image/png",
                 "application/problem+json",
                 None,
@@ -148,7 +127,6 @@ class TestImageResizeAPI(object):
         method,
         origin,
         path,
-        multipart_field_name,
         accept,
         content_type,
         body,
@@ -156,16 +134,17 @@ class TestImageResizeAPI(object):
     ):
         href = f"{origin}{path}"
         headers = {"accept": accept}
-        files = None
+        data = None
 
         if body is not None:
-            file_name = body.split("/")[-1]
-            files = file_name
-            files = {multipart_field_name: (file_name, open(body, "rb"))}
+            with open(body, "rb") as fp:
+                data = fp.read()
+            
+            headers["content-type"] = "application/octet-stream"
 
         # https://2.python-requests.org/en/master/api/#requests.request
         logger.debug(f"{method} {href}")
-        r = requests.request(method, href, headers=headers, files=files)
+        r = requests.request(method, href, headers=headers, data=data)
 
         assert r.status_code == status_code
         assert r.headers["content-type"].split(";")[0] == content_type
