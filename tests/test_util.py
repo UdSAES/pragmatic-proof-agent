@@ -18,7 +18,7 @@ test_data_base_path = os.path.normpath(
 
 
 class TestUtitityFunctions(object):
-    origin = os.getenv("IMG_API_ORIGIN", "http://localhost:3000")
+    origin = os.getenv("API_ORIGIN", "")
 
     @pytest.mark.parametrize(
         "input, expected",
@@ -71,12 +71,11 @@ class TestUtitityFunctions(object):
         if rdf2http["expected"]["files"] != None:
             assert actual.files == rdf2http["expected"]["files"]
 
-    @pytest.mark.skip(reason="Need to fix `request_from_graph()` first")
     @pytest.mark.parametrize(
         "proof, R, prefix, expected",
         [
             (
-                os.path.join(test_data_base_path, "proof_00.n3"),
+                os.path.join(test_data_base_path, "00_pre_proof.n3"),
                 [
                     os.path.join(test_data_base_path, "images.n3"),
                     os.path.join(test_data_base_path, "images_x_thumbnail.n3"),
@@ -86,16 +85,11 @@ class TestUtitityFunctions(object):
                     requests.Request(
                         "POST",
                         f"{origin}/images",
-                        headers={"accept": "text/n3"},
-                        files={
-                            "image": (
-                                "example.png",
-                                open(
-                                    os.path.join(test_data_base_path, "example.png"),
-                                    "rb",
-                                ),
-                            )
+                        headers={
+                            "accept": "text/n3",
+                            "content-type": "application/octet-stream",
                         },
+                        data=os.path.join(test_data_base_path, "example.png"),
                     )
                 ],
             )
@@ -104,13 +98,16 @@ class TestUtitityFunctions(object):
     def test_identify_http_requests(self, proof, R, prefix, expected):
         ctx = invoke.context.Context()  # empty context
 
-        results = agent.identify_http_requests(ctx, proof, R, prefix)
+        results = agent.identify_http_requests(ctx, proof, R, prefix, rdflib.Graph())
 
         assert len(results) == len(expected)
 
         for index, result in enumerate(results):
+            with open(expected[index].data, "rb") as fp:
+                expected[index].data = fp.read()
+
             r, actual = result
             assert actual.method == expected[index].method
             assert actual.url == expected[index].url
             assert actual.headers == expected[index].headers
-            assert actual.files["image"][0] == expected[index].files["image"][0]
+            assert actual.data == expected[index].data

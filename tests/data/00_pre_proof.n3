@@ -1,0 +1,99 @@
+@prefix dbpedia: <http://dbpedia.org/resource/>.
+@prefix dbpedia-owl: <http://dbpedia.org/ontology/>.
+@prefix ex: <http://example.org/image#>.
+@prefix http: <http://www.w3.org/2011/http#>.
+@prefix r: <http://www.w3.org/2000/10/swap/reason#>.
+
+[] a r:Proof, r:Conjunction;
+  r:component <#lemma1>;
+  r:gives {
+    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> dbpedia-owl:thumbnail _:sk_4.
+  }.
+
+<#lemma1> a r:Inference;
+  r:gives {
+    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> dbpedia-owl:thumbnail _:sk_4.
+  };
+  r:evidence (
+    <#lemma2>
+  );
+  r:rule <#lemma3>.
+
+<#lemma2> a r:Inference;
+  r:gives {
+    _:sk_5 http:methodName "GET".
+    _:sk_5 http:requestURI _:sk_4.
+    _:sk_5 http:headers _:sk_6.
+    _:sk_6 http:fieldName "Accept".
+    _:sk_6 http:fieldValue "text/n3".
+    _:sk_5 http:resp _:sk_7.
+    _:sk_7 http:body _:sk_4.
+    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> dbpedia-owl:thumbnail _:sk_4.
+    _:sk_4 a dbpedia:Image.
+    _:sk_4 dbpedia-owl:height 80.0 .
+  };
+  r:evidence (
+    <#lemma4>
+  );
+  r:rule <#lemma5>.
+
+<#lemma3> a r:Extraction;
+  r:gives {
+    {?x_0_1 dbpedia-owl:thumbnail ?x_1_1} => {?x_0_1 dbpedia-owl:thumbnail ?x_1_1}.
+  };
+  r:because [ a r:Parsing; r:source <file:///mnt/00_init_goal.n3>].
+
+<#lemma4> a r:Inference;
+  r:gives {
+    _:sk_0 http:methodName "POST".
+    _:sk_0 http:requestURI "http://localhost:4000/images".
+    _:sk_0 http:headers _:sk_1.
+    _:sk_1 http:fieldName "Accept".
+    _:sk_1 http:fieldValue "text/n3".
+    _:sk_0 http:body <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png>.
+    _:sk_0 http:resp _:sk_2.
+    _:sk_2 http:body <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png>.
+    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> ex:comments _:sk_3.
+    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> ex:smallThumbnail _:sk_4.
+  };
+  r:evidence (
+    <#lemma6>
+  );
+  r:rule <#lemma7>.
+
+<#lemma5> a r:Extraction;
+  r:gives {
+    {?x_0_2 ex:smallThumbnail ?x_1_2} => {_:x_2_2 http:methodName "GET".
+     _:x_2_2 http:requestURI ?x_1_2.
+     _:x_2_2 http:headers _:x_3_2.
+     _:x_3_2 http:fieldName "Accept".
+     _:x_3_2 http:fieldValue "text/n3".
+     _:x_2_2 http:resp _:x_4_2.
+     _:x_4_2 http:body ?x_1_2.
+     ?x_0_2 dbpedia-owl:thumbnail ?x_1_2.
+     ?x_1_2 a dbpedia:Image.
+     ?x_1_2 dbpedia-owl:height 80.0}.
+  };
+  r:because [ a r:Parsing; r:source <file:///mnt/images_x_thumbnail.n3>].
+
+<#lemma6> a r:Extraction;
+  r:gives {
+    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> a dbpedia:Image.
+  };
+  r:because [ a r:Parsing; r:source <file:///mnt/00_init_facts.n3>].
+
+<#lemma7> a r:Extraction;
+  r:gives {
+    {?x_0_3 a dbpedia:Image} => {_:x_1_3 http:methodName "POST".
+     _:x_1_3 http:requestURI "http://localhost:4000/images".
+     _:x_1_3 http:headers _:x_2_3.
+     _:x_2_3 http:fieldName "Accept".
+     _:x_2_3 http:fieldValue "text/n3".
+     _:x_1_3 http:body ?x_0_3.
+     _:x_1_3 http:resp _:x_3_3.
+     _:x_3_3 http:body ?x_0_3.
+     ?x_0_3 ex:comments _:x_4_3.
+     ?x_0_3 ex:smallThumbnail _:x_5_3}.
+  };
+  r:because [ a r:Parsing; r:source <file:///mnt/images.n3>].
+

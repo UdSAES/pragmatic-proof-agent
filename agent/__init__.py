@@ -14,6 +14,7 @@ from .agent import (  # noqa
     FAILURE,
     SUCCESS,
     correct_n3_syntax,
+    identify_http_requests,
     request_from_graph,
     solve_api_composition_problem,
 )
