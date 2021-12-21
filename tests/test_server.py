@@ -16,7 +16,7 @@ test_data_base_path = os.path.normpath(
 
 
 class TestImageResizeAPI(object):
-    origin = os.environ["IMG_API_ORIGIN"]
+    origin = os.getenv("API_ORIGIN", "")
 
     @pytest.mark.parametrize(
         "method, origin, path, multipart_field_name, accept, content_type, body, status_code",

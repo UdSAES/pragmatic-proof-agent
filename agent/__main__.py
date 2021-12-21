@@ -8,7 +8,6 @@ import os
 import re
 import sys
 
-import rdflib
 import requests
 from invoke import Context, task
 from jinja2 import Environment, FileSystemLoader
@@ -28,6 +27,12 @@ def delete_all_files(directory):
 
 
 def split_restdesc(text, directory):
+    """Store each RESTdesc rule in a separate file.
+    
+    This facilitates handling in the pragmatic proof algorithm as omitting a rule from
+    evaluation becomes trivial iff all rules are stored in a separate file.
+    """
+
     # Extract prefix declarations
     prefixes_regex = re.compile(
         r"^(?P<prefix>@prefix) (?P<abbrv>[\w-]*:) (?P<url><[\w\d:\/\.#-]+>) *\.$",

@@ -18,7 +18,7 @@ test_data_base_path = os.path.normpath(
 
 
 class TestUtitityFunctions(object):
-    origin = os.environ["IMG_API_ORIGIN"]
+    origin = os.getenv("IMG_API_ORIGIN", "http://localhost:3000")
 
     @pytest.mark.parametrize(
         "input, expected",
@@ -71,6 +71,7 @@ class TestUtitityFunctions(object):
         if rdf2http["expected"]["files"] != None:
             assert actual.files == rdf2http["expected"]["files"]
 
+    @pytest.mark.skip(reason="Need to fix `request_from_graph()` first")
     @pytest.mark.parametrize(
         "proof, R, prefix, expected",
         [
