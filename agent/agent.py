@@ -758,10 +758,10 @@ def parse_http_body(node, r):
             else:
                 data = r.body
             r_body_ds = rdflib.Dataset()
-            r_body_ds.namespace_manager = NAMESPACE_MANAGER
             r_body_ds.parse(data=data, format=content_type, publicID=r.url)
 
             for graph in r_body_ds.graphs():
+                graph.namespace_manager = NAMESPACE_MANAGER
                 for s, p, o in graph:
                     triples.append((s, p, o))
                     triples.append((node, HTTP.body, s))
