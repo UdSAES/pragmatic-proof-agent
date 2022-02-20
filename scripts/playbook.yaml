@@ -8,23 +8,11 @@
 
     # EYE reasoner
     eye:
-      image:
-        name: eye:latest
       repo:
         path: "{{ basedir }}/eye"
+      image:
+        name: eye:latest
   tasks:
-    # Ensure Docker module dependencies are installed
-    - name: Ensure Docker module dependencies are installed
-      ansible.builtin.pip:
-        name: "{{ item.name }}"
-        state: "{{ item.state }}"
-      loop:
-        - { name: docker, state: present }
-        - { name: docker-py, state: absent }
-      become: true
-      tags:
-        - ansible-deps
-
     # Build image for EYE reasoner
     - name: Build image for EYE reasoner
       community.docker.docker_image:
