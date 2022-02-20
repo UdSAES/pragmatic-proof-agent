@@ -917,6 +917,10 @@ def solve_api_composition_problem(
 
     # Write newly gained knowledge to disk
     response_graph_serialized = response_graph.serialize(format="n3")
+
+    # WORKAROUND for bug in N3 serializer (no prefix 'rdf' but `[ sh:path rdf:type ]`)
+    response_graph_serialized = f"@prefix rdf: <{RDF}> .\n" + response_graph_serialized
+
     logger.trace(f"New information parsed from response:\n{response_graph_serialized}")
 
     G = f"{iteration:0>2}_sub_api_response.n3"
@@ -943,6 +947,10 @@ def solve_api_composition_problem(
 
     # Write updated knowledge (API response + shapes/input-map) to disk
     agent_knowledge_updated = H_union_G.serialize(format="n3")
+
+    # WORKAROUND for bug in N3 serializer (no prefix 'rdf' but `[ sh:path rdf:type ]`)
+    agent_knowledge_updated = f"@prefix rdf: <{RDF}> .\n" + agent_knowledge_updated
+
     logger.trace(f"agent_knowledge_updated:\n{agent_knowledge_updated}")
 
     with open(os.path.join(directory, agent_knowledge), "w") as fp:
