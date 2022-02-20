@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf8 -*-
 
+# SPDX-FileCopyrightText: 2022 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+# SPDX-License-Identifier: MIT
+
+
 """Software agent for hypermedia API composition and execution."""
 
 
@@ -768,6 +772,16 @@ def parse_http_body(node, r):
 
             r_body_serialized = r_body_ds.serialize(format="application/trig")
             logger.trace(f"Triples parsed from message body:\n{r_body_serialized}")
+
+            if isinstance(r, requests.Response):
+                with open(
+                    os.path.join(
+                        "/home/moritz/tmp/agent",
+                        f"{r.request.method.lower()}_{r.url.split('/')[-1].split('?')[0]}.trig",
+                    ),
+                    "w",
+                ) as fp:
+                    fp.write(r_body_serialized)
         else:
             logger.warning(
                 f"Found unsupported non-binary content-type '{content_type}'; "
