@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: MIT
 
 
-"""Examples demonstrating the use of the Pragmatic Proof Algorithm."""
+"""Expose CLI and examples demonstrating the use of the Pragmatic Proof Algorithm."""
 
 
 import os
@@ -16,7 +16,7 @@ import requests
 from invoke import Context, task
 from jinja2 import Environment, FileSystemLoader
 
-from . import FAILURE, SUCCESS, logger, solve_api_composition_problem
+from agent import FAILURE, SUCCESS, logger, solve_api_composition_problem
 
 
 # Utitily functions
@@ -148,23 +148,45 @@ def download_restdesc(ctx, origin, selector, directory, clean_tmp=False):
 
 @task(
     help={
+        "example": "The example to run: 'image-resizing' or 'simulation'",
         "origin": "The root URL to the service instance",
-        "directory": "The directory in which to store the .n3-files",
-        "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
+        "tmp_dir": "The directory in which to store all files created during execution",
+        "tmp_clean": "Delete all files in `tmp_dir` before starting",
     }
 )
-def run_example(ctx, template_dir, input, selector, origin, directory, clean_tmp=False):
+def run_example(ctx, example, origin, tmp_dir, tmp_clean=False):
     """Collect definition of specific API composition problem; then solve it."""
+
+    # Choose between the examples provided in this repository
+    if example not in ["image-resizing", "simulation"]:
+        logger.error(f"Example '{example}' not supported, exiting...")
+        sys.exit(1)
+
+    logger.info(f"Running example '{example}'...")
+
+    # Example: Resizing an image
+    if example == "image-resizing":
+        templates_dir = "./examples/image_resizing"
+        selector = os.getenv("IMG_API_LANG")
+        input = "example.png"
+
+        logger.debug(f"{selector=}")
+
+    # Example: Simulation of a Functional Mockup Unit
+    if example == "simulation":
+        templates_dir = "./examples/simulation"
+        selector = "ms"
+        input = "model.fmu"
 
     # Environment to be used when rendering templates using Jinja2
     ENV = Environment(
-        loader=FileSystemLoader(template_dir),
+        loader=FileSystemLoader(templates_dir),
         trim_blocks=True,
         lstrip_blocks=True,
     )
 
-    if clean_tmp == True:
-        delete_all_files(directory)
+    if tmp_clean == True:
+        delete_all_files(tmp_dir)
 
     # Specify _initial state H_
     initial = ENV.get_template("initial_state.n3.jinja")
@@ -175,7 +197,7 @@ def run_example(ctx, template_dir, input, selector, origin, directory, clean_tmp
     g = "00_init_goal.n3"
 
     # Discover _description formulas R_ (RESTdesc descriptions)
-    R = download_restdesc(ctx, origin, selector, directory, False)
+    R = download_restdesc(ctx, origin, selector, tmp_dir, False)
 
     # Specify additional _background knowledge B_ [if applicable]
     background = ENV.get_template("background_knowledge.n3.jinja")
@@ -183,16 +205,16 @@ def run_example(ctx, template_dir, input, selector, origin, directory, clean_tmp
 
     # Ensure that all relevant knowledge is stored in a file on disk
     for template, filename, data in [
-        (initial, H, {"filepath": os.path.abspath(os.path.join(template_dir, input))}),
+        (initial, H, {"filepath": os.path.abspath(os.path.join(templates_dir, input))}),
         (goal, g, {}),
         (background, B, {}),
     ]:
-        path = os.path.join(directory, filename)
+        path = os.path.join(tmp_dir, filename)
         with open(path, "w") as fp:
             fp.write(template.render(data))
 
     # Solve API composition problem
-    status = solve_api_composition_problem(ctx, directory, [H], g, R, B)
+    status = solve_api_composition_problem(ctx, tmp_dir, [H], g, R, B)
 
     # Properly set exit code
     if status == SUCCESS:
@@ -201,24 +223,3 @@ def run_example(ctx, template_dir, input, selector, origin, directory, clean_tmp
         logger.error("💥 Terminating with non-zero exit code...")
 
     sys.exit(status)
-
-
-if __name__ == "__main__":
-
-    origin = os.getenv("API_ORIGIN")
-    directory = os.getenv("AGENT_TMP")
-    clean_tmp = True
-
-    # Example: Resizing an image
-    templates_dir = "./examples/image_resizing"
-    selector = os.getenv("IMG_API_LANG")
-    input = "example.png"
-
-    run_example(Context(), templates_dir, input, selector, origin, directory, clean_tmp)
-
-    # # Example: Simulation of a Functional Mockup Unit
-    # templates_dir = "./examples/simulation"
-    # selector = "ms"
-    # input = "model.fmu"
-
-    # run_example(Context(), templates_dir, input, selector, origin, directory, clean_tmp)
