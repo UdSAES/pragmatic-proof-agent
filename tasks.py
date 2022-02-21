@@ -75,25 +75,30 @@ def split_restdesc(text, directory):
 @task(
     help={
         "origin": "The root URL to the service instance",
-        "selector": "Identifier for which API to use ('en'/'de'/'fr'/'ms').",
-        "directory": "The directory in which to store the .n3-files",
-        "clean_tmp": "Set iff all files in $AGENT_TMP shall be deleted first",
-    }
+        "tmp_dir": "The directory in which to store all files created during execution",
+        "tmp_clean": "Delete all files in `tmp_dir` before starting",
+        "selector": "Identifier for which variant of the img-API to use ('en'/'de'/'fr')",
+    },
+    optional=["selector"],
 )
-def download_restdesc(ctx, origin, selector, directory, clean_tmp=False):
+def download_restdesc(ctx, origin, tmp_dir, tmp_clean=False, selector=None):
     """
-    Download RESTdesc descriptions of service instance.
+    Download RESTdesc descriptions from service instance.
 
     SPECIFIC TO THE EXAMPLES; NOT UNIVERSALLY VALID!
     """
 
     logger.info(f"Downloading RESTdesc descriptions from {origin}...")
 
-    if clean_tmp == True:
-        delete_all_files(directory)
+    if tmp_clean == True:
+        delete_all_files(tmp_dir)
 
     if selector in ["en", "de", "fr"]:
+        # TODO stop this madness
         logger.warning(f"Discovery of RESTdesc hardcoded against known URI structure!")
+
+    if selector == None:
+        selector = "ms"
 
     api_paths = {
         "en": [
@@ -130,13 +135,13 @@ def download_restdesc(ctx, origin, selector, directory, clean_tmp=False):
         else:
             if path == "/":
                 # Store each rule in a separate file so 'R without r' works better
-                filenames = split_restdesc(restdesc, directory)
+                filenames = split_restdesc(restdesc, tmp_dir)
             else:
                 filename = "_".join(path.replace("_", "x").split("/")[1:]) + ".n3"
                 logger.debug(f"{filename}\n{restdesc}")
 
                 # Store on disk
-                path = os.path.join(directory, filename)
+                path = os.path.join(tmp_dir, filename)
                 logger.trace(f"Writing RESTdesc to {path}...")
                 with open(path, "w") as fp:
                     fp.write(restdesc)
@@ -175,7 +180,7 @@ def run_example(ctx, example, origin, tmp_dir, tmp_clean=False):
     # Example: Simulation of a Functional Mockup Unit
     if example == "simulation":
         templates_dir = "./examples/simulation"
-        selector = "ms"
+        selector = None
         input = "model.fmu"
 
     # Environment to be used when rendering templates using Jinja2
@@ -197,7 +202,7 @@ def run_example(ctx, example, origin, tmp_dir, tmp_clean=False):
     g = "00_init_goal.n3"
 
     # Discover _description formulas R_ (RESTdesc descriptions)
-    R = download_restdesc(ctx, origin, selector, tmp_dir, False)
+    R = download_restdesc(ctx, origin, tmp_dir, False, selector)
 
     # Specify additional _background knowledge B_ [if applicable]
     background = ENV.get_template("background_knowledge.n3.jinja")
