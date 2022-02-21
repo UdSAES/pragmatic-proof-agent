@@ -853,15 +853,17 @@ def parse_http_response(response):
 
 @task(
     iterable=["H", "R"],
-    optional=["B", "pre_proof", "n_pre"],
+    optional=["B", "pre_proof", "n_pre", "iteration", "si"],
     help={
+        "directory": "The directory in which to store all files created during execution",
         "H": ".n3-files containing the initial state",
         "g": ".n3-file specifying the agent's goal",
-        "R": "The RESTdesc descriptions as .n3-files",
-        "B": ".n3-file containing background knowledge",
+        "R": ".n3-file containing a RESTdesc rule (can be given multiple times)",
+        "B": ".n3-file containing background knowledge  (can be given multiple times)",
         "pre_proof": "The .n3-file containing the pre-proof",
         "n_pre": "The number of API operations in `pre_proof`",
-        "iteration": "The iteration depth",
+        "iteration": "The current iteration depth",
+        "si": "rdflib.graph.Graph-instance containing shapes for inputs (don't use via CLI)",
     },
 )
 def solve_api_composition_problem(
