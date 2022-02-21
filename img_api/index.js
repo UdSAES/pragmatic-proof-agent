@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+// SPDX-License-Identifier: MIT
+
+
 // Implementation of the photo-API used as example on RESTdesc.org
 
 'use strict'
