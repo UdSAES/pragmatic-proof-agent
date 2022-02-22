@@ -1,0 +1,45 @@
+// SPDX-FileCopyrightText: 2022 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+//
+// SPDX-License-Identifier: CC-BY-4.0
+
+
+= A hypermedia API for Creating Thumbnails of Images
+
+This directory contains an implementation of a hypermedia API that accepts images and provides thumbnails (80 px high) of them. It is intended to serve as an example for the use of RESTdesc and the Pragmatic Proof Algorithm used in the publications on these by Verborgh et al.
+
+The paths of the exposed resources can be configured in order to simulate the evolution of APIs and the ability (or incompetence) of clients to deal with that. For example, a thumbnail could be exposed at `/images/eb1c2af2/thumbnail` or `/bilder/eb1c2af2/miniaturbild`.
+
+== Set-up and Use
+The implementation assumes the existence of `/usr/bin/convert` (part of https://imagemagick.org/[ImageMagick]) and requires a few ENVVARs to be set. ENVVARs with a default value are optional.
+
+[#tbl-envvars,options="header",cols="2,5,1"]
+|===
+| Environment Variable
+| Description
+| Default Value
+
+| `IMG_API_TMP`
+| A directory in which to store the uploaded images and thumbnails
+| --
+
+| `IMG_API_LANG`
+| An abbreviation for the language to be used for the resource paths (`en`/`de`/`fr`)
+| `en`
+
+| `IMG_API_PORT`
+| The port at which to listen for requests
+| `3000`
+
+| `IMG_API_LOGLEVEL`
+| The https://github.com/trentm/node-bunyan#levels[log level] to be used
+| `30`
+
+|===
+
+With the environment set, the API can be started via `node index.js` _from this directory_ (important because relative paths are used that break otherwise).
+
+== Retrieving the RESTdesc Descriptions
+Currently, the RESTdesc descriptions can be retrieved by `OPTIONS`-requests to `/images` and `/images/_/thumbnail`, where `images` is to be replaced by `bilder` in the German variant and `photos` in the French variant; and `thumbnail` is to be replaced by `miniaturbild` or `miniature`.
+
+This is highly impractical because it requires clients to know about this. Therefore, the RESTdesc descriptions for _all_ endpoints should be exposed in one N3 document transferred as the reaction to a `OPTIONS`-request at `*`. Tbd.
+
