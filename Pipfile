@@ -5,10 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 isort = "*"
-ansible = "*"
 black = "*"
 resolvelib = "*"
-docker = "*"
 reuse = "*"
 
 [packages]
