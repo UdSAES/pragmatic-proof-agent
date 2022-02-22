@@ -1,21 +1,82 @@
-= Pragmatic Proofs
+// SPDX-FileCopyrightText: 2022 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+//
+// SPDX-License-Identifier: CC-BY-4.0
+
+= Pragmatic Proof Agent
 
 image:https://img.shields.io/badge/code%20style-black-000000.svg[alt=Code style: black, link=https://github.com/psf/black]
 image:https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336[alt=Imports: isort, link=https://timothycrosley.github.io/isort]
 
-Hypermedia API composition and execution using N3/RESTdesc/EYE; almost entirely based on...
+The Pragmatic Proof Algorithm (PPA) solves hypermedia API composition problems -- in other words, it answers the question "`which requests to execute in which sequence in order to achieve a goal given a set of hypermedia APIs?`". It was developed by Verborgh et al. and is described in detail in 
 
-Verborgh, Ruben, Dörthe Arndt, et al. (2017-01). “The Pragmatic Proof: Hypermedia API Composition and Execution”. In: Theory and Practice of Logic Programming 17.1, pp. 1–48. DOI: https://doi.org/10.1017/S1471068416000016[10.1017/S1471068416000016].
+Verborgh, Ruben, Dörthe Arndt, et al. (2017-01). "`The Pragmatic Proof: Hypermedia API Composition and Execution`". In: Theory and Practice of Logic Programming 17.1, pp. 1–48. DOI: https://doi.org/10.1017/S1471068416000016[10.1017/S1471068416000016].
 
-*This repository contains an implementation of the example set forward in the paper above with the aim of fully understanding it and reproducing its core results.*
+This repository contains an implementation of what is described in the paper above with the aim of fully understanding it and reproducing its core results. Moreover, it includes examples that demonstrate the ability of the PPA to achieve declaratively formulated goals.
 
-Actually usable documentation to be provided soon(ish).
+// example of what can be achieved using PPA-implementation as building block described in paper SWJ: ...
 
 == Installation
-...
+Get a local copy of the code in this repository by cloning or downloading a release. Then, install the dependencies using `pipenv install` and activate the resulting virtual environment with `pipenv shell`. Make sure that https://nodejs.org/en/[Node.js] and the https://docs.docker.com/engine/install/[Docker engine] are installed.
+
+The implementation relies on the existence of a Docker image of the https://josd.github.io/eye/[EYE reasoner]. For building this image, get a local copy of the https://github.com/josd/eye[EYE-repository] and execute `docker build -t eye:latest .` from within that directory.
+
+The name of the image MUST to be communicated to the PPA through an ENVVAR. Furthermore, a timeout for the reasoner and other options CAN be set.
+
+[#tbl-envvars,options="header",cols="2,5,1"]
+|===
+| Environment Variable
+| Description
+| Default Value
+
+| `EYE_IMAGE_NAME`
+| The name of the Docker image for the EYE reasoner, e.g. `eye:latest`
+| --
+
+| `EYE_TIMEOUT`
+| A https://docs.pyinvoke.org/en/stable/api/runners.html#invoke.runners.Runner.run[threshold in seconds] after which the EYE reasoner is timed out
+| `None`
+
+| `AGENT_LOG_LEVEL`
+| The minimum https://loguru.readthedocs.io/en/stable/api/logger.html#levels[log level] to be included in the logs. There exist additional levels `DETAIL` (severity value 15) and `REQUEST`/`USER` (25).
+| `INFO`
+
+|===
+
 
 == Usage
-...
+The PPA-implementation can be used via a Command-Line Interface (CLI) as well as from Python source code.
 
-== Roadmap
-...
+The CLI is implemented using https://docs.pyinvoke.org/en/stable/index.html[Invoke]. List the available functionality using `invoke --list` and display the documentation for specific functionality using, for example, `invoke --help run-example`.
+
+For using the PPA in Python, import and use the `solve_api_composition_problem(..)`-function, which returns `0` if successful and `1` to indicate failure.
+
+Running the PPA-implementation requires a directory in which all files generated/retrieved during execution can be stored. Most of these files follow the naming scheme `<iteration>_<init/pre/sub>_<what>.<extension>` to facilitate understanding what happens in which order. For example, `00_pre_proof.n3` refers to the pre-proof generated in the first iteration and `01_sub_proof.n3` refers to the post-proof (`sub` for subsequent) generated during the second iteration.
+
+== Examples
+There are two examples of using the PPA included in this repository. They can be executed via `invoke run-example [--options]`.
+
+. Getting a Thumbnail of an Image -- this is an implementation of the example used by Verborgh et al. to explain RESTdesc and the PPA in the corresponding scientific publications. The hypermedia API is implemented in `img_api/` -- refer to the link:img_api/README.adoc[README] for details. The necessary inputs can be found in link:examples/image_resizing/[examples/image_resizing/].
+. Simulating a Functional Mock-up Unit (FMU) -- this instantiates and simulates an FMU representing a PV system using an instance of the hypermedia API-variant of https://github.com/UdSAES/simaas-api[https://github.com/UdSAES/simaas-api]. The necessary inputs are provided in link:examples/simulation/[examples/simulation/].
+
+== Known Issues
+.To be fixed as soon as possible
+* [ ] Replace exemplary FMU with one that doesn't require a Dymola-license to execute (!) and assign proper license
+* [ ] Document extension of PPA to deal with shapes for inputs
+* [ ] ...
+
+.To be fixed
+* [ ] Fix unit tests currently skipped
+* [ ] Link to paper iff it is accepted
+* [ ] ...
+
+== Contributing and Development
+Feedback is very welcome! Please open an issue for questions, remarks and bug reports; or open a pull request if you want to improve something.
+
+The code in this repository uses Semantic Versioning (semver) and follows the https://semver.org/spec/v2.0.0.html[semver specification].
+
+The Python code is formatted automatically using https://black.readthedocs.io/en/stable/[black] and https://pycqa.github.io/isort/[isort]. JavaScript code and JSON documents inside `img_api/` are formatted automatically according to https://standardjs.com/[JavaScript Standard Style] using https://www.npmjs.com/package/prettier-standard[`prettier-standard`] via `npm run format`.
+
+There are some unit tests and API tests for the API providing thumbnails, implemented using https://docs.pytest.org/en/latest/how-to/usage.html#usage[pytest]. The API tests require the ENVVAR `API_ORIGIN` to be set.
+
+== License
+The source code is licensed under the https://spdx.org/licenses/MIT.html[MIT License]. This is specified in the format suggested by the https://reuse.software[REUSE SOFTWARE]-initiative -- in short: https://spdx.dev/ids/[SPDX IDs] are included in every non-binary file and the license text can be found in link:LICENSES/[./LICENSES/].
