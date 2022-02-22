@@ -171,8 +171,13 @@ def run_example(ctx, example, origin, tmp_dir, tmp_clean=False):
 
     # Example: Resizing an image
     if example == "image-resizing":
-        templates_dir = "./examples/image_resizing"
         selector = os.getenv("IMG_API_LANG")
+
+        if selector == None:
+            logger.error(f"ENVVAR 'IMG_API_LANG' MUST be set, exiting...")
+            sys.exit(1)
+
+        templates_dir = "./examples/image_resizing"
         input = "example.png"
 
         logger.debug(f"{selector=}")
