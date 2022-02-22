@@ -7,12 +7,12 @@
 [] a r:Proof, r:Conjunction;
   r:component <#lemma1>;
   r:gives {
-    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> dbpedia-owl:thumbnail _:sk_4.
+    <file:///tmp/example.png> dbpedia-owl:thumbnail _:sk_4.
   }.
 
 <#lemma1> a r:Inference;
   r:gives {
-    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> dbpedia-owl:thumbnail _:sk_4.
+    <file:///tmp/example.png> dbpedia-owl:thumbnail _:sk_4.
   };
   r:evidence (
     <#lemma2>
@@ -28,7 +28,7 @@
     _:sk_6 http:fieldValue "text/n3".
     _:sk_5 http:resp _:sk_7.
     _:sk_7 http:body _:sk_4.
-    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> dbpedia-owl:thumbnail _:sk_4.
+    <file:///tmp/example.png> dbpedia-owl:thumbnail _:sk_4.
     _:sk_4 a dbpedia:Image.
     _:sk_4 dbpedia-owl:height 80.0 .
   };
@@ -50,11 +50,11 @@
     _:sk_0 http:headers _:sk_1.
     _:sk_1 http:fieldName "Accept".
     _:sk_1 http:fieldValue "text/n3".
-    _:sk_0 http:body <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png>.
+    _:sk_0 http:body <file:///tmp/example.png>.
     _:sk_0 http:resp _:sk_2.
-    _:sk_2 http:body <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png>.
-    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> ex:comments _:sk_3.
-    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> ex:smallThumbnail _:sk_4.
+    _:sk_2 http:body <file:///tmp/example.png>.
+    <file:///tmp/example.png> ex:comments _:sk_3.
+    <file:///tmp/example.png> ex:smallThumbnail _:sk_4.
   };
   r:evidence (
     <#lemma6>
@@ -78,7 +78,7 @@
 
 <#lemma6> a r:Extraction;
   r:gives {
-    <file:///home/moritz/work/projekte/phd_thesis/use_cases/api_composition/pragmatic_proof_agent/examples/image_resizing/example.png> a dbpedia:Image.
+    <file:///tmp/example.png> a dbpedia:Image.
   };
   r:because [ a r:Parsing; r:source <file:///mnt/00_init_facts.n3>].
 

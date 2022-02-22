@@ -18,8 +18,6 @@ test_data_base_path = os.path.normpath(
 
 
 class TestUtitityFunctions(object):
-    origin = os.getenv("API_ORIGIN", "")
-
     @pytest.mark.parametrize(
         "input, expected",
         [
@@ -71,6 +69,7 @@ class TestUtitityFunctions(object):
         if rdf2http["expected"]["files"] != None:
             assert actual.files == rdf2http["expected"]["files"]
 
+    @pytest.mark.skip(reason="Relies on hardcoded paths in `00_pre_proof.n3`, to be resolved")
     @pytest.mark.parametrize(
         "proof, R, prefix, expected",
         [
@@ -84,7 +83,7 @@ class TestUtitityFunctions(object):
                 [
                     requests.Request(
                         "POST",
-                        f"{origin}/images",
+                        "http://example.com/images",
                         headers={
                             "accept": "text/n3",
                             "content-type": "application/octet-stream",
