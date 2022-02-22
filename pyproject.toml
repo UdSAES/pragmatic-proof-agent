@@ -1,10 +1,6 @@
-# https://github.com/psf/black/blob/master/pyproject.toml
-# Example configuration for Black
+# SPDX-FileCopyrightText: 2022 UdS AES <https://www.uni-saarland.de/lehrstuhl/frey.html>
+# SPDX-License-Identifier: CC0-1.0
 
-# NOTE: you have to use single-quoted strings in TOML for regular expressions.
-# It's the equivalent of r-strings in Python.  Multiline strings are treated as
-# verbose regular expressions by Black.  Use [ ] to denote a significant space
-# character.
 
 [tool.black]
 line-length = 88
