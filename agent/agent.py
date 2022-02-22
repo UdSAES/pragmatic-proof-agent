@@ -530,26 +530,28 @@ def demand_user_input_is_ready(shapes_and_inputs, term):
     iterable=["input_files"],
     optional=["suffix", "workdir"],
     help={
+        "tmp_dir": "The working directory on the host",
         "input_files": "The filenames of all input files",
         "agent_goal": "The name of the .n3-file specifying the agent's goal",
         "suffix": "A suffix for the file name in which the proof is stored",
         "workdir": "The directory inside the container at which files are mounted",
     },
 )
-def eye_generate_proof(ctx, input_files, agent_goal, prefix=None, workdir="/mnt"):
+def eye_generate_proof(
+    ctx, tmp_dir, input_files, agent_goal, prefix=None, workdir="/mnt"
+):
     """Generate proof using containerized EYE reasoner."""
 
     logger.info("Generating proof using EYE...")
 
     # Assemble command
-    dir_n3 = os.getenv("AGENT_TMP")
     image_name = os.getenv("EYE_IMAGE_NAME")
     cmd_engine = (
         "docker run "
         "-i "
         "--rm "
         "--name eye "
-        f"-v {dir_n3}:{workdir} "
+        f"-v {tmp_dir}:{workdir} "
         f"-w {workdir} "
         f"{image_name} "
     )
@@ -584,7 +586,7 @@ def eye_generate_proof(ctx, input_files, agent_goal, prefix=None, workdir="/mnt"
 
     # Store the proof as a file on disk
     proof = "proof.n3" if prefix is None else f"{prefix}_proof.n3"
-    path = os.path.join(dir_n3, proof)
+    path = os.path.join(tmp_dir, proof)
     with open(path, "w") as fp:
         fp.write(content)
 
@@ -885,7 +887,7 @@ def solve_api_composition_problem(
     if pre_proof == None:
         # (1) Generate the (initial) pre-proof
         status, pre_proof = eye_generate_proof(
-            ctx, input_files, g, f"{iteration:0>2}_pre", workdir
+            ctx, directory, input_files, g, f"{iteration:0>2}_pre", workdir
         )
         if status == FAILURE:
             return FAILURE
@@ -979,7 +981,7 @@ def solve_api_composition_problem(
     # (5b) Generate post-proof
     input_files = concatenate_eye_input_files([agent_knowledge], g, R, B)
     status, post_proof = eye_generate_proof(
-        ctx, input_files, g, f"{iteration:0>2}_sub", workdir
+        ctx, directory, input_files, g, f"{iteration:0>2}_sub", workdir
     )
 
     # (6) What is the value of `n_post`?
